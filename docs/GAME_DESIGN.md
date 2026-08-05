@@ -1,27 +1,22 @@
 # Long Life — Game Design Document (GDD)
 
-> **Working title LOCKED: "Long Life."** (Files/ids may still say "life-sim".)
->
-> **Status:** DRAFT v0.2. Turns the PRD vision into concrete mechanics, formulas, ladders, and
-> first-pass economy numbers. **Every number here is a starting point and lives in a central
-> tuning config** (see Technical Architecture) — expect to re-balance. Numbers are labeled
-> *[TUNE]* where they're especially provisional.
->
-> Scope note: this GDD specs the **full game**, but flags what belongs to **M1 (vertical slice)**
-> vs. later milestones, per PRD §17.
+> **Status:** v0.3 (current design of record). Concrete mechanics, formulas, ladders, and first-pass
+> economy numbers for **Long Life**. Every number is a starting point and lives in a central tuning
+> config (see Technical Architecture); values flagged *[TUNE]* are especially provisional. Superseded
+> ideas are not tracked here. The GDD specs the full game and flags what belongs to **M1** vs. later
+> milestones (§14).
 
 ---
 
-## 0. Design pillars (what every decision defers to)
+## 0. Design pillars
 
-1. **The week is sacred.** Every system resolves through the tick. If a mechanic can't be
-   expressed as "what happens this week," it doesn't belong.
-2. **Time is the scarce resource, not money.** The core tension is always *what do I spend this
-   week on* — money is just stored time.
-3. **Grounded, with spice.** Realistic systems; occasional absurd events/flavor.
-4. **No dominant strategy.** Every path (career vs. business vs. market) should be viable and have
-   a counter-pressure. Snowballing is fine; a *free* snowball is not.
-5. **A run is a story.** Events and swings must make two runs feel different even with the same plan.
+1. **The week is sacred.** Every system resolves through the tick. Turn-based, no time-skip.
+2. **Time is the scarce resource, not money.** The core tension is always *what to spend this week on*.
+3. **Grounded, with spice.** Realistic systems and prices; occasional absurd events/flavor.
+4. **No dominant strategy.** Career, business, and market are each viable paths; snowballing is fine, a
+   *free* snowball is not.
+5. **A run is a story.** Events and swings make two runs feel different even with the same plan.
+6. **Out-earn your mortality.** The endgame is the compounding-vs-aging race, funded to buy Elixirs (§12).
 
 ---
 
@@ -30,169 +25,139 @@
 ### 1.1 Time
 - `WEEKS_PER_YEAR = 48`; 4 weeks = 1 month; 12 months = 1 year.
 - `ageYears = floor(startAge + totalWeeks / 48)`; `startAge` from scenario (usually 18).
-- **No time-skip. Turn-based only** — every advance of the clock is a deliberate one-week action
-  (work / study / activity / manage). There is no "advance N weeks," no auto-live. The week is the
-  unit of decision; a long life is many considered choices. (This makes aging/longevity perks and the
-  Elixir meaningfully valuable, since reaching very old age is a real investment of turns.)
+- **No time-skip.** Every clock advance is a deliberate one-week action (`work` / `study` / `activity`
+  / `manage`). No "advance N," no auto-live.
 
 ### 1.2 Stats
-Two visible survival stats, `health` and `happiness`, each clamped `[0,100]`.
-
-Per-tick update (order matters — see §2 for the full tick):
+`health` and `happiness`, each clamped `[0,100]`. Per-tick:
 ```
-health     += passiveHealth   - healthDecay   + actionHealth
-happiness  += passiveHappy     - happyDecay     + actionHappy
+health     += passiveHealth  - healthDecay + actionHealth
+happiness  += passiveHappy    - happyDecay   + actionHappy
 ```
-
-**Decay (the aging pressure):**
+**Decay (aging pressure):**
 ```
-ageDecay   = max(0, ageYears - 25) * AGE_DECAY_RATE * agingMult      // AGE_DECAY_RATE = 0.02 [TUNE]
+ageDecay      = max(0, ageYears - 25) * AGE_DECAY_RATE * agingMod    // AGE_DECAY_RATE = 0.02 [TUNE]
 healthDecay   = BASE_H_DECAY  + ageDecay + (happiness < 30 ? CROSS_PENALTY : 0)   // BASE_H_DECAY = 0.10
 happyDecay    = BASE_HP_DECAY            + (health    < 30 ? CROSS_PENALTY : 0)   // BASE_HP_DECAY = 0.40
-CROSS_PENALTY = 0.30    // low body drags the mind and vice-versa
+CROSS_PENALTY = 0.30
 ```
-`agingMult` comes from prestige/perks (<1 slows aging). Insurance & deep-health inputs (M4) further
-scale `ageDecay`.
+`agingMod` (<1 slows aging) comes from **insurance, traits, and perks only** — there are no prestige
+multipliers. Passive contributions come from residence, lifestyle, and (later) deep-health inputs.
 
-**Passive contributions** come from home/lifestyle/business-management drains (§7, §8, §9), summed each tick.
-
-### 1.3 Death & breakdown (PRD §6)
-Track `weeksAtZeroHealth` and `weeksAtZeroHappy` counters.
+### 1.3 Death & breakdown
+Track `weeksAtZeroHealth` / `weeksAtZeroHappy`:
 ```
-if health   == 0: weeksAtZeroHealth++  else weeksAtZeroHealth = 0
-if happiness == 0: weeksAtZeroHappy++   else weeksAtZeroHappy = 0
-if weeksAtZeroHealth >= 3 → DEATH        ("your body gave out")
-if weeksAtZeroHappy   >= 3 → BREAKDOWN    ("your mind gave out")  // conscious death
+health   == 0 ? weeksAtZeroHealth++ : weeksAtZeroHealth = 0
+happiness == 0 ? weeksAtZeroHappy++  : weeksAtZeroHappy = 0
+weeksAtZeroHealth >= 3 → DEATH      ("your body gave out")
+weeksAtZeroHappy   >= 3 → BREAKDOWN  ("your mind gave out")
 ```
-Both are **run-terminal → prestige**. Reaching 0 shows an escalating warning; the 3-week grace lets a
-desperate player claw back (a costly spa week, quitting a brutal job) before it's over. Warnings at
-`<18` remain as early alerts. *(M1: full rule.)*
+Both are run-terminal. Reaching 0 shows an escalating warning; the 3-week grace lets a desperate player
+claw back before it's over. On a run ending, the player picks a new scenario; **unlocked perks &
+achievements persist, nothing else does** (no prestige carry-over).
 
 ### 1.4 Money model
-- `cash` (liquid), `bank` (safe yield), plus asset holdings (M3). Net worth sums all + illiquid asset
-  value (home, businesses, property).
-- **Scale: the economy runs from pocket change to the trillions.** All monetary values, salaries, prices,
-  and balances are designed to remain sensible across ~15 orders of magnitude. **Hard ceiling:
-  `MONEY_CAP = 999,000,000,000,000` (≈ $999T).** Cash, bank, net worth, and holdings are each clamped at
-  the cap; the UI shows "$999T (max)" at the ceiling. Trillions are a true late-game aspiration reached
-  only via business empires + market compounding + a very long life — never via a paycheck.
-- **Number formatting** (`moneyShort`): `k` (1e3) · `M` (1e6) · `B` (1e9) · `T` (1e12), 2–3 sig-figs,
-  e.g. `$1.25B`, `$847T`. Full form with grouped commas for exact/precise displays. Formatter must span
-  the full range up to the cap without overflow.
-- **Bank:** tiered weekly compound interest (kept from prototype) as the *safe, low* option. Tiers extend
-  across the whole range so very large balances still earn a sensible (not runaway) rate; rates stay
-  modest so the market/business are the real growth engines *[TUNE]*. Automation toggles (auto-deposit %,
-  pay-upkeep-from-bank, overdraft) carry over.
-- **Weekly upkeep** = home upkeep + subscriptions billed each tick. *(No business management cost — see §7.)*
-- **Pricing is market-realistic** (see §3, §4, §9): tuition, salaries, homes, and goods are scaled to
-  real-world reference points, then the top end opens up for empires. Not toy numbers.
+- `cash` (liquid), `bank` (safe yield), asset holdings (M3). Net worth = all liquid + illiquid asset
+  value (residence-if-owned, businesses, property).
+- **Hard ceiling `MONEY_CAP = 999_999_999_999_999`** (~$1 quadrillion). `cash`, `bank`, net worth, and
+  holdings are each clamped at the cap.
+- **`moneyShort` — 3 significant figures**, suffixes `k/M/B/T`:
+  ```
+  <1e3 : exact, grouped commas        e.g. $842
+  ≥1e3 : $#.##k / $##.#k / $###k       e.g. $12.5k
+  ≥1e6 : M   ≥1e9 : B   ≥1e12 : T      e.g. $1.25M · $12.5M · $125M · $1.25B · $847T
+  at cap → "$999T" (MAX badge)
+  ```
+  Exact/precise displays use full grouped-comma form. The formatter must not overflow at the cap.
+- **Bank:** tiered weekly compound interest, the *safe, low* option. Tiers span the whole range; rates
+  stay modest so market/business are the real growth engines *[TUNE]*. Automation toggles (auto-deposit
+  %, pay-upkeep-from-bank, overdraft) carry over.
+- **Weekly upkeep** = residence upkeep + subscriptions, billed each tick. (No business management cost.)
+- **Pricing is market-realistic across every element** (§3, §4, §9, §12): tuition, salaries, homes,
+  cars, food, activities, businesses, and assets all peg to real-world references; the fantasy scaling
+  lives only at the very top.
 
 ---
 
 ## 2. The tick (authoritative order)
 
-The tick is a **pure reducer**: `tick(state, action, rng) → newState`. One `action` per week
-(`work` | `study` | `activity` | `advance` | `manageBusiness` | …). Order:
-
+Pure reducer: `tick(state, action, rng) → newState`. One `action` per week. Order:
 ```
  1. totalWeeks += 1
  2. Bank interest on prior balance
- 3. Business pass: compute per-business income/loss, growth step, morale step, management drains
- 4. Market pass (M3): advance asset prices per news + volatility
- 5. Income in: business net + salary(if work) + rent(M3), apply auto-deposit split
- 6. Upkeep out: home + subscriptions + payroll(businesses) (+overdraft/bank rules)
- 7. Passive stat deltas (home/lifestyle/business drains)
- 8. Decay (age-driven), then apply action's stat/money/xp/study effects
+ 3. Business pass: per-business income/loss, growth step, morale step (no owner stat drain)
+ 4. Market pass (M3): advance asset prices per active news drift + hidden volatility
+ 5. Income in: business net + salary(if work) + rent(M3); apply auto-deposit split
+ 6. Upkeep out: residence + subscriptions + business payroll (+ overdraft/bank rules)
+ 7. Passive stat deltas (residence/lifestyle)
+ 8. Decay (age-driven), then apply the action's stat/money/xp/study effects
  9. Skills/experience increments (M4/M2)
-10. Event roll (§10): eligibility → weight buckets → probabilistic pick → apply/queue decision
-11. Clamp stats; update zero-counters; check death/breakdown
+10. Event roll (§10): eligibility → severity buckets → weighted pick → apply / open decision modal
+11. Clamp stats & money(cap); update zero-counters; check death/breakdown
 12. Update peak net worth; evaluate goals (§11) & achievements
 13. Append log lines; autosave
 ```
-
-M1 implements steps 1–3, 5–8, 10–13 (no market/rent). Deterministic given `(state, action, rng seed)`.
+Deterministic given `(state, action, rng seed)`. M1 implements 1–3, 5–8, 10–13 (no market/rent).
 
 ---
 
-## 3. Education (PRD §7)
+## 3. Education
 
-### 3.1 Spine (sequential, each gates the next)
-Tuition is **market-realistic** (US private-university reference), not the toy prices of the prototype.
-Total cost of a degree lands near real sticker price; financing/debt is an event/finance surface later.
-
+### 3.1 Spine (sequential; market-realistic tuition)
 | Level | id | Study weeks | Tuition [TUNE] | Requires |
 |---|---|---|---|---|
 | School (baseline) | `school` | — | — | given at start (most scenarios) |
 | Diploma / Associate | `diploma` | 24 | ~$25,000 | school |
-| **Degree (choose major)** | `degree:<major>` | 96 (≈2 game-yrs) | ~$120,000 | diploma |
+| **Degree (choose major)** | `degree:<major>` | 96 | ~$120,000 | diploma |
 | Master's | `master:<major>` | 48 | ~$70,000 | matching degree |
 | PhD | `phd:<major>` | 96 | ~$45,000 | matching master |
 
-*Med School (auxiliary) ≈ $300,000; Bar prep, academies, etc. priced to their real-world analogues (§3.3).*
-Study weeks lengthened so education is a genuine multi-year commitment, not a few clicks.
+Credentials are permanent and cumulative (a PhD implies the degree). One enrollment at a time; **Study**
+= +1 progress week (small happiness cost); graduation grants the credential.
 
 ### 3.2 Majors (branch at Degree)
-`CS · Law · Business · Medicine · Engineering · Arts · Science · Education` (extensible).
-A major is carried on the credential (`degree:law`). **Strict lock:** a career field consumes a
-specific major (see §4 map). Medicine additionally routes through **Med School** (auxiliary) for a
-license, mirroring the prototype.
+`CS · Law · Business · Medicine · Engineering · Arts · Science · Education` (extensible). A major is
+carried on the credential (`degree:law`). **Strict lock:** a professional field requires its specific
+major (see §4). Medicine routes through **Med School** (auxiliary, ~$300k) for a license.
 
 ### 3.3 Auxiliary tracks (off-spine unlockers)
 `Community College · Trade Certificate · Police Academy · Military Academy · Med School · Bar Exam …`
-Each is a standalone `{weeks, cost, grants}` that unlocks specific jobs/businesses/skills without being
-on the degree ladder. *(M1: spine + majors only; auxiliaries in M2.)*
+Each `{weeks, cost, grants}` unlocks specific jobs/businesses/skills, priced to real-world analogues.
 
-### 3.4 Rules
-- One enrollment at a time; tuition upfront; **Study** action = +1 progress week; graduation grants the
-  credential. Study weeks carry a small happiness cost.
-- Credentials are permanent and carry across the spine (a PhD implies the degree).
-
-### 3.5 Life Courses (skill/trait unlockers) — new
-A separate, lightweight education track (short courses, hobbies, self-improvement, experiences) that
-**unlock a specific Skill or Trait** rather than a career credential. Distinct from the degree spine and
-from auxiliary academies.
+### 3.4 Life Courses (skill/trait unlockers)
 ```
 LifeCourse = { id, name, cost, weeks, grants: SkillOrTraitId, req?, special? }
 ```
-- **Priced & paced by the value of what they unlock.** A cheap, quick course grants a minor perk; a
-  costly, long one grants a strong trait. Examples:
-  - *Thrifting workshop* → **Frugality** (all purchases/upkeep cheaper). Low cost, few weeks.
-  - *Public-speaking class* → **Charisma+** (better relationship & promotion outcomes).
-  - *Investing seminar* → **Market Sense** (clearer read on volatility patterns — see §8.2).
-  - *Martial arts / fitness program* → **Iron Constitution** (slower health decay).
-- **Special-locked unlocks:** certain powerful traits are **not** buyable here at all and only unlock via
-  **special scenarios or specific actions** (e.g., **Lucky**, §5) — the course catalog never lists them.
-- Multiple courses over a life; each Skill/Trait unlocks once. Some courses have prerequisites (`req`).
-*(M4-adjacent, but the framework is small enough to seed earlier.)*
+Short courses/hobbies/experiences that unlock a **Skill or Trait**, **priced & paced by the value they
+unlock**:
+- *Thrifting workshop* → **Frugality** (cheaper purchases/upkeep). Low cost, few weeks.
+- *Public-speaking class* → **Charisma+**.
+- *Investing seminar* → **Market Sense** (sharper read of hidden volatility, §8).
+- *Fitness program* → **Iron Constitution** (slower health decay).
+
+**Special-locked traits** (e.g., **Lucky**, §5) are **never** in this catalog — only via special
+scenarios/actions. Each Skill/Trait unlocks once; some courses have prerequisites (`req`).
 
 ---
 
-## 4. Careers (PRD §8)
+## 4. Careers
 
 ### 4.1 Model
-- Career = **field ladder** of named **roles**. Taking a job places you at the lowest role you qualify for.
-- **Salary is fixed per role**; it changes **only on promotion** (no weekly creep).
-- **Promotion gate = weeks-in-field (experience) AND education tier.** The job UI shows progress to next
-  promotion and what's blocking it (need weeks, or need a credential).
-- **Field entry = strict education lock** for professional fields (need the field's major). **Entry-tier
-  jobs** (service/labor) need no education and are the universal fallback.
-- Working costs weekly `health`/`happiness` by role (stress). Higher roles often pay more *and* drain more.
+- Field ladders of named roles. Taking a job places you at the lowest role you qualify for; the UI shows
+  progress to next promotion and what's blocking it.
+- **Salary is fixed per role; it changes only on promotion.**
+- **Field entry = strict education lock** for professional fields; **entry-tier jobs** (service/labor)
+  need no education and are the universal fallback.
 
-> **Design rule — every role has a UNIQUE gate (no strictly-dominated roles).** A higher-paying role must
-> require *something the lower one does not* — otherwise no rational player ever chooses the lower role
-> (a flaw in the prototype). So each promotion adds a **distinct** requirement drawn from a mix of:
-> weeks-in-field, prior-role tenure, education tier, a **skill threshold**, a **trait**, or an
-> **achievement/milestone** (e.g., "shipped a product," "managed a team for 48 wks"). Two adjacent roles
-> never share the exact same requirement set. This rule applies to **every** ladder in the Data Spec.
+> **Design rule — every role has a UNIQUE gate (no strictly-dominated roles).** A higher-paying role
+> must require *something the lower one does not*, drawn from a mix of: weeks-in-field, prior-role
+> tenure, education tier, a **skill threshold**, a **trait**, or an **achievement/milestone**. Two
+> adjacent roles never share the same requirement set. Applies to **every** ladder in the Data Spec.
 
 ### 4.2 Fields
-`Service · Labor · Tech · Medical · Legal · Business/Finance · Creative · Public (police/military) · Academia`
+`Service · Labor · Tech · Medical · Legal · Business/Finance · Creative · Public · Academia`.
 
 ### 4.3 Reference ladder — **Tech** (fully authored for M1; salaries market-realistic)
-Salaries shown per **week** with the implied annual (×48) for sanity. **Each row's "Unique gate to
-reach" is different from every other row** (the §4.2 design rule). Gates combine experience with a
-*distinct* extra: a skill threshold, a trait, an achievement, or a higher credential.
-
 | Role | Salary/wk | ≈ Annual | Unique gate to reach this role |
 |---|---|---|---|
 | Intern | 1,000 | ~$48k | `Degree:CS` (field entry) |
@@ -205,311 +170,265 @@ reach" is different from every other row** (the §4.2 design rule). Gates combin
 | VP Engineering | 16,000 | ~$770k | Leadership ≥ 85 **+ achievement "Shipped a $10M Product"** |
 | CTO | 25,000 | ~$1.2M | `PhD:CS` **OR** founded & grew a tech business to profit **+ Finance ≥ 70** |
 
-Every gate is unique, so there is **never** a reason to sit in a lower role once you qualify for the next —
-and the top roles demand *broadening* (leadership, finance, a founder achievement), not just more of the
-same. Stress (weekly health/happiness cost) still rises with role and is tabled per-role in the Data Spec.
-Every other field gets an equivalently unique-gated ladder there (M2). Skills/traits (M4) both **gate**
-and **accelerate** promotions; M1 approximates skill/achievement gates with experience+edu where a skill
-system isn't live yet.
+Every gate is unique, so no lower role is ever strictly dominated, and the top demands *broadening*
+(leadership, finance, a founder achievement). Per-role stress (weekly health/happiness cost) is tabled
+in the Data Spec. Every other field gets an equivalently unique-gated ladder (M2). M1 approximates
+skill/achievement gates with experience+education where the skill system isn't live yet.
 
 ### 4.4 Entry-tier fallback jobs (no education)
-Dishwasher, Cashier, Warehouse Packer, Rideshare Driver, Barista — low pay, always available, feed the
-Service/Labor experience that some businesses/auxiliaries want.
+Dishwasher, Cashier, Warehouse Packer, Rideshare Driver, Barista — low pay, always available, build
+Service/Labor experience some businesses/auxiliaries want.
 
 ---
 
-## 5. Skills & traits (PRD §9) — *M4*
+## 5. Skills & traits
 
-- **Traits/Background:** set by scenario + some events + some Life Courses (§3.5). Examples: *Hustler*
-  (+business growth), *Ivy Legacy* (start with a degree, more debt), *Iron Constitution* (slower health
-  decay), *Anxious* (faster happiness decay, cheaper therapy events), *Frugality* (all
-  purchases/upkeep cheaper). Traits are mostly permanent per run.
-- **Lucky (special trait):** the event roll (§10) is biased toward **positive** outcomes — more windfalls,
-  softer catastrophes, better odds on choice events. **Not purchasable** in the Life-Course catalog; it
-  **only unlocks via specific scenarios or actions** (e.g., completing a hard-luck scenario, a rare event
-  chain). It can then be applied as a toggleable **Perk** in future runs (§11.3).
-- **Skills** (0–100, leveled by use): *Discipline, Charisma, Negotiation, Fitness, Coding, Finance,
-  Street Smarts*. Effects: promotion speed, event-choice success odds, relationship gains, market read,
-  business growth. Skills are per-run; prestige perks may grant starting levels.
+- **Traits/Background:** from scenario + some events + some Life Courses. Examples: *Hustler*
+  (+business growth), *Iron Constitution* (slower health decay), *Frugality* (cheaper everything),
+  *Anxious* (faster happiness decay, cheaper therapy events).
+- **Lucky (special trait):** biases the event roll (§10) toward positive outcomes — more windfalls,
+  softer catastrophes, better choice odds. **Not purchasable**; unlocks only via specific
+  scenarios/actions, then usable as a toggleable **Perk** (§11.3).
+- **Skills (leveled by use):** Discipline, Charisma, Negotiation, Fitness, Coding, Finance, Market
+  Sense, Street Smarts. Effects: gate/accelerate promotions, event-choice odds, relationship gains,
+  business growth, market read. Skills are per-run; perks may grant starting levels.
 
 ---
 
-## 6. Relationships & family (PRD §10) — *M4*
+## 6. Relationships & family
 
-- **Relationship meter** per active relationship (partner; friends optional later). Raised by
-  time/gifts/attention actions and some events; decays slowly if neglected.
-- **Partner:** dating → committed → married. Provides shared income (a fraction of a generated partner
-  salary), happiness passive, but shared costs and event surface (illness, conflict, divorce → asset split).
-- **Children:** ongoing weekly cost + happiness volatility + dedicated events (school, milestones,
-  emergencies). **No heir/succession** — children are texture and finance/event surface only.
-- Marriage/kids can be **goal/scenario** objectives (§11).
+- **Relationship meter** per partner. Dating → committed → married. Shared income (a fraction of a
+  generated partner salary), happiness passive, shared costs, event surface (illness, conflict, divorce
+  → asset split).
+- **Children:** ongoing weekly cost + happiness volatility + dedicated events. **No heir/succession.**
+- Marriage/kids can be goal/scenario objectives (§11).
 
 ---
 
-## 7. Business (PRD §11) — *M2 (roadmap: IPO)*
-
-The signature deep system. Each owned business is an object with its own state.
+## 7. Business
 
 ### 7.1 Tiers & fields
-Businesses are tiered by **capital cost & product** (micro → small → medium → large → enterprise) and
-belong to a **field** (Food, Retail, E-commerce, Software, Consulting, Medical, Real-Estate-Ops, …).
-Field determines the flavor and the **field-unique modifier** (§7.5).
+Tiered by **capital cost & product** (micro → small → medium → large → enterprise), each in a **field**
+(Food, Retail, E-commerce, Software, Consulting, Medical, Real-Estate-Ops…). Field sets the flavor and
+the field-unique modifier (§7.5).
 
 ### 7.2 Per-business state
 ```
 { id, tier, field,
-  growth,   // 0..100  // maturity: drives revenue realization
-  morale,   // 0..100  // aggregate Team Morale (single meter — DECIDED)
+  growth,   // 0..100  maturity → revenue realization
+  morale,   // 0..100  aggregate Team Morale (single meter)
   staff, branches,     // counts, each capped by tier
   reputation/techDebt/inventory/... // one field-unique stat
 }
 ```
-*(No `invested` field — the "pour capital to boost growth" mechanic is removed, see §7.5.)*
+No `invested` field — there is no capital-investment mechanic.
 
 ### 7.3 Lifecycle: loss → breakeven → profit
-Each business has a `baseRevenue` and `baseCost` for its tier. **Realized revenue scales with growth**;
-costs (incl. payroll) are paid from week one — so a young business runs at a **loss** until growth climbs.
 ```
-capacity      = tierCapacity * (1 + 0.5*branches) * (0.5 + 0.5*moraleFactor)   // moraleFactor = morale/100
-revenue       = baseRevenue * (growth/100) * capacity
-payroll       = staff * wagePerStaff            // wage is a player-set lever (see morale)
-runningCost   = baseCost + payroll + branches*branchUpkeep
-weeklyNet     = revenue - runningCost           // negative early = the startup loss
+capacity     = tierCapacity * (1 + 0.5*branches) * (0.5 + 0.5*moraleFactor)   // moraleFactor = morale/100
+revenue      = baseRevenue * (growth/100) * capacity
+payroll      = staff * wagePerStaff
+runningCost  = baseCost + payroll + branches*branchUpkeep
+weeklyNet    = revenue - runningCost          // negative early = the startup loss
 ```
 
-### 7.4 Growth & morale steps (per tick)
+### 7.4 Growth & morale (per tick)
 ```
-competence  = matchEduField(owner, field) ? 1.0 : 0.5     // relevant edu/exp doubles growth
-growthDrive = GROWTH_BASE * competence * moraleFactor      // no capital-investment term (removed)
-growth     += growthDrive - decayIfNeglected                // approaches 100 asymptotically [TUNE]
+competence  = matchEduField(owner, field) ? 1.0 : 0.5      // relevant edu/exp doubles growth
+growthDrive = GROWTH_BASE * competence * moraleFactor       // no capital-investment term
+growth     += growthDrive - decayIfNeglected                // asymptotic toward 100 [TUNE]
 
-// morale: set wages & profit-share; morale rises toward a target set by generosity, falls if stingy
-wageRatio   = wagePerStaff / marketWage           // 1.0 = market rate
-shareRatio  = profitSharePct                       // % of weeklyNet returned to staff
-moraleTarget = clamp(40 + 40*(wageRatio-1) + 60*shareRatio)   // generous pay/share → high target [TUNE]
-morale     += (moraleTarget - morale) * MORALE_LERP           // MORALE_LERP = 0.08
-if morale < ATTRITION_FLOOR: staff may quit (capacity drops)  // ATTRITION_FLOOR = 25
+wageRatio    = wagePerStaff / marketWage                    // 1.0 = market rate
+shareRatio   = profitSharePct
+moraleTarget = clamp(40 + 40*(wageRatio-1) + 60*shareRatio) // generous pay/share → higher target [TUNE]
+morale      += (moraleTarget - morale) * MORALE_LERP        // MORALE_LERP = 0.08
+if morale < ATTRITION_FLOOR: staff may quit (capacity drops) // ATTRITION_FLOOR = 25
 ```
-So the player nurtures a company by **paying well / sharing profit** (raises morale → capacity → revenue)
-vs. **extracting** (higher take now, morale erodes, attrition stalls growth). Owner competence
-(education/experience match) is the other big lever — matching background makes growth far cheaper.
+You nurture a company by **paying well / sharing profit** (morale → capacity → revenue) vs. **extracting**
+(more take now, morale erodes, attrition stalls growth). Owner competence is the other big lever.
 
-### 7.5 Operations & caps
-Two levers only (no capital-investment mechanic):
-- **Hire** staff up to `tierStaffCap`; raises capacity ceiling *and* payroll (which morale depends on).
-- **Open branch** up to `tierBranchCap`; multiplies capacity, adds upkeep, dilutes morale slightly.
-- Plus the ongoing **wage / profit-share** levers that drive morale (§7.4). Buying into a *higher tier*
-  business is a separate up-front purchase, not an incremental "invest."
-- **Field-unique stat** modifies the formulas: Food `reputation` (events + service quality scale revenue),
-  Software `techDebt` (accrues with fast growth, drags revenue until you pay it down with focus/time),
-  Retail/E-com `inventory` (stock-outs cap revenue). Each field authors one such stat in the Data Spec.
-- **No health/happiness cost for owning businesses.** Running a business is purely a financial/management
-  system — it never drains the player's survival stats. *(Deliberate: realism was more frustrating than
-  fun here — this is a game.)*
+### 7.5 Operations & caps (two levers only)
+- **Hire** staff up to `tierStaffCap` — raises capacity ceiling *and* payroll.
+- **Open branch** up to `tierBranchCap` — multiplies capacity, adds upkeep, slightly dilutes morale.
+- **Field-unique stat:** Food `reputation` (scales revenue), Software `techDebt` (accrues with fast
+  growth, drags revenue until paid down with time/focus), Retail/E-com `inventory` (stock-outs cap
+  revenue). One per field in the Data Spec.
+- **No health/happiness cost for owning a business** — purely financial/management (deliberate: fun > realism here).
 
 ### 7.6 Roadmap: IPO
-A mature large/enterprise business can **IPO** → becomes a tradable ticker on the market (§8), unlocking
-share sales, dilution, and (grey-zone) insider-trading events. Post-v1.
+A mature large/enterprise business can **IPO** → a tradable ticker on the market (§8), enabling share
+sales, dilution, and insider-trading events. Post-v1.
 
 ---
 
-## 8. Investing & the Market (PRD §12) — *M3 (real estate too)*
+## 8. Investing & the Market
 
-### 8.1 Asset classes (tabbed UI)
-`Stocks · Commodities · Cryptocurrencies` (+ later: Bonds, player IPOs). Each asset the **player sees**:
-`{ id, name, class, price }` — **only the price and its history are shown.** Volatility is **never
-displayed** (see §8.2).
+### 8.1 Asset classes & names
+`Stocks · Commodities · Cryptocurrencies` (+ later Bonds, player IPOs). Player sees only `{ id, name,
+class, price }` and price history.
+- **Parody tickers** for brand-based assets — distorted-but-guessable to avoid trademarks (Tesla→**Taslo**,
+  Nvidia→**Nvadia**, Google→**Gaggle**, Amazon→**Amazor**, Bitcoin→**Bitcorn**…). **Real commodities**
+  (gold, silver, oil, wheat…) keep real names — they aren't brands.
 
-### 8.2 Price model & HIDDEN volatility (per tick, in the market pass)
+### 8.2 Price model & HIDDEN volatility
 ```
 price *= 1 + drift + noise
-noise  = gaussian(0, sigma(asset))               // sigma is INTERNAL — never shown to the player
-drift  = sum(activeNewsEffects on this asset)     // news is the deterministic, visible signal
+noise  = gaussian(0, sigma(asset))    // sigma is INTERNAL — never shown, never documented in-game
+drift  = sum(activeNewsEffects on this asset)
 ```
-- **Volatility (`sigma`) is a hidden, unexplained property.** It is **not shown anywhere** in the UI and is
-  **never documented in-game**. Players learn an asset's "temperament" only by **watching its price
-  patterns over time** — some tickers are jumpy, others glassy-calm, and figuring out which is part of the
-  game we never spell out.
-- **`sigma` is set per asset** from its **class** (crypto ≫ commodities > stocks, as a baseline) **and an
-  abstract per-asset field/reputation modifier** (a blue-chip stock is calmer than a meme stock even
-  within "Stocks"). These modifiers are authored in the Data Spec but **surfaced to the player only
-  implicitly, through behavior**. The *Market Sense* skill (§3.5) subtly improves a player's read but never
-  prints the number.
-- Design intent: discovering volatility is emergent mastery. We document `sigma` for ourselves; the player
-  is meant to *feel* it, not read it.
+- **Volatility (`sigma`) is hidden and unexplained.** Not shown anywhere; players learn an asset's
+  temperament only by watching its price patterns over time.
+- `sigma` is set per asset from its **class** (crypto ≫ commodities > stocks) **and an abstract per-asset
+  field/reputation modifier** (a blue-chip is calmer than a meme stock within "Stocks"). Authored in the
+  Data Spec, surfaced to the player only implicitly. The *Market Sense* skill subtly improves the read
+  but never prints the number.
 
-### 8.3 News feed (DECIDED: always predictive; 0–3 per week, per individual asset)
-- **Each week, 0–3 short headlines publish**, and **each headline targets one specific asset (account)** —
-  not the whole market. So a given week might move Taslo, Silver, and one crypto, while everything else
-  drifts on its own hidden volatility.
-- A headline binds to its asset with a **known sign & magnitude** and a **horizon** (drift applies over the
-  next K weeks). *"Taslo R&D announces a sustainable-energy breakthrough" → Taslo trends up ~K wks; "New
-  mining tech floods silver supply" → Silver trends down ~K wks.*
-- Because news is **always predictive of direction**, the skill is **timing, sizing, and exit** — you know
-  *which way* a named asset will lean, but you still fight the hidden volatility (§8.2) on entry/exit and on
+### 8.3 News feed (always direction-predictive; magnitude by tone)
+- **Each week, 0–3 short headlines publish; each targets one specific asset.**
+- A headline sets a **known direction** and a **strength tier** that scales the **drift magnitude** over a
+  short horizon:
+
+  | Strength | Reads like | Drift magnitude |
+  |---|---|---|
+  | **Soft** | vague / speculative ("in talks to onboard a partner") | small |
+  | **Moderate** | concrete but limited ("beat quarterly earnings") | medium |
+  | **Strong** | unambiguous, major ("achieved an R&D breakthrough") | large |
+
+- Direction is always reliable; **magnitude is encoded in the language**, so *reading tone* is the skill.
+  You know which way a named asset leans, but still fight hidden volatility (§8.2) on entry/exit and on
   every un-newsed asset. News is the signal; volatility is the fog.
 
 ### 8.4 Real estate (rent, flip & live-in)
-Properties are market assets with a slow price series and a **quality** stat (0–100). Three uses for an
-owned property:
-- **Rent:** collect weekly rent (passive income) − upkeep/vacancy risk (event surface).
-- **Flip:** optional **renovate** (spend weeks + cash to raise quality/value) → sell into the variable
-  market. Profit = sale − purchase − reno − holding costs; timing vs. the price series matters.
-- **Live in it (new):** designate an owned property as your **residence**. While you live there:
-  - **All separate housing costs are removed** — you pay no rent-tier upkeep; you *own* your home. (You
-    still pay property upkeep/taxes as part of holding it, but the Lifestyle "Home" upkeep goes to zero.)
-  - The property's **quality and price drive your weekly health/happiness passives**, exactly like the
-    prototype's housing tiers. A nicer, pricier home = better passives.
-  - **Renovating raises the passive**, but each property has a **cap on how good the living-boost can get,
-    set by its price bracket** — you can't renovate a cheap shack into a mansion-tier wellbeing boost;
-    quality lifts you toward the ceiling its price allows, no further.
-- One property is your residence at a time; the rest rent or wait to flip. Distinct from renting a plain
-  **Home tier** in Lifestyle (§9), which is the option for players who don't want to own.
+Properties are market assets with a slow price series and a **quality** stat (0–100):
+- **Rent:** weekly rent (passive) − upkeep/vacancy risk (event surface).
+- **Flip:** optional **renovate** (weeks + cash → raise quality/value) → sell into the variable market;
+  profit = sale − purchase − reno − holding.
+- **Live in it:** designate as residence →
+  - **All separate housing costs removed** (you own your home; you still pay property upkeep/taxes).
+  - **Quality + price drive weekly health/happiness passives** (like the old housing tiers).
+  - **Renovation raises the passive up to a cap set by the property's price bracket** — a cheap home can
+    never reach mansion-tier wellbeing.
+- One residence at a time; the rest rent or await a flip.
 
 ---
 
-## 9. Lifestyle (PRD §13) — *M2*
-
-Split into four spend categories; each contributes passive stats and/or weekly upkeep:
-- **Home (residence):** either **rent a tier** (Parents' → Studio → Condo → House → Villa → Mansion —
-  weekly upkeep + passive health/happiness, exclusive, kept from prototype) **or live in an owned
-  property** (§8.4), which zeroes the Home upkeep and derives passives from that property's quality/price
-  (capped by its bracket). Renting is the low-friction path; owning-and-living-in is the aspirational one.
-- **Food (diet tiers):** from instant-noodles to personal-chef; recurring cost, health-leaning passive.
-- **Clothes (wardrobe tiers):** happiness/social passive; mix of one-time buys and upkeep; some gate
-  social/relationship event outcomes.
+## 9. Lifestyle
+Four spend categories, each contributing passive stats and/or weekly upkeep; all market-priced:
+- **Home (residence):** **rent a tier** (Studio → Condo → House → Villa → Mansion; upkeep + passives) or
+  **live in an owned property** (§8.4, zeroes Home upkeep).
+- **Food (diet tiers):** recurring, health-leaning passive.
+- **Clothes (wardrobe):** happiness/social passive; some gate social/relationship event outcomes.
 - **Subscriptions (stackable):** Gym (health), **Health Insurance** (scales down health-event costs &
-  aging), Streaming/Hobbies (happiness), etc. Recurring upkeep.
-
-*(M1 ships Home + a couple of subscriptions; Food/Clothes in M2.)*
+  aging via `agingMod`), hobbies/streaming (happiness), etc.
 
 ---
 
-## 10. Events (PRD §15) — *light set in M1, full in later milestones*
+## 10. Events
 
 ### 10.1 Structure
 ```
-Event = {
-  id, category,                        // health/finance/career/social/absurd
-  eligible(state) → bool,              // gating (e.g., no insurance, has job, has business)
-  weight(state) → number,              // situational likelihood
-  severity,                            // minor | major | catastrophic
-  kind: "outcome" | "choice",
-  apply(state) OR choices:[{label, apply(state), successOdds?(state)}]
-}
+Event = { id, category, eligible(state)→bool, weight(state)→number, severity,
+          kind: "outcome" | "choice",
+          apply(state) OR choices:[{label, apply(state), successOdds?(state)}] }
 ```
 
 ### 10.2 Roll (tick step 10)
 ```
-pool     = events.filter(e => e.eligible(state))
-if rand() > WEEKLY_EVENT_CHANCE: return          // most weeks: nothing (WEEKLY_EVENT_CHANCE ≈ 0.15 [TUNE])
-bucketed = groupByWeightRange(pool)               // severity/weight buckets
-bucket   = pickBucketBiasedToMinor()              // minor common, major rare, catastrophic very rare
-event    = weightedPick(bucket, e => e.weight(state))
-event.kind == "choice" ? openDecisionModal(event) : apply(event)   // choice = blocking modal
+pool  = events.filter(e => e.eligible(state))
+if rand() > WEEKLY_EVENT_CHANCE: return                     // WEEKLY_EVENT_CHANCE ≈ 0.15 [TUNE]
+bucket = pickBucketBiasedToMinor()                           // minor common, major rare, catastrophic very rare
+event  = weightedPick(bucket, e => e.weight(state))
+event.kind == "choice" ? openDecisionModal(event) : apply(event)
 ```
-`weight` keys off life state: no insurance ↑ medical-bill severity; high job stress ↑ burnout; wealth ↑
-lawsuit/scam surface; bad neighborhood ↑ theft; relationship state ↑ social events; etc.
-
-**Lucky bias (§5):** if the player has the *Lucky* trait/perk, the roll skews toward positive outcomes —
-positive events get a weight multiplier, catastrophic buckets are down-weighted, and choice-event
-`successOdds` get a bonus. It never disables bad events entirely; it tilts the distribution.
+`weight` keys off life state (no insurance ↑ medical severity, high stress ↑ burnout, wealth ↑
+lawsuit/scam, relationship state ↑ social events…). **Lucky** (§5) multiplies positive-event weight,
+down-weights catastrophes, and bonuses choice `successOdds` — never disables bad events.
 
 ### 10.3 Sample events (M1 seed set)
-- *Minor:* found $200; caught a cold (−health, 1 wk); friend's wedding (−cash, +happiness);
-  car trouble (−cash if you own a car).
-- *Major (choice):* medical scare — **pay $8k for treatment** vs. **gamble** (odds scale w/ insurance & health).
-- *Major:* surprise layoff (lose job) — weighted up by high stress / down by seniority.
-- *Absurd:* a distant relative leaves you a llama farm (small passive income + upkeep + flavor).
+- *Minor:* found $200; caught a cold (−health, 1wk); friend's wedding (−cash, +happiness); car trouble.
+- *Major (choice):* medical scare — **pay for treatment** vs. **gamble** (odds scale w/ insurance & health).
+- *Major:* surprise layoff (weighted up by high stress, down by seniority).
+- *Absurd:* a distant relative leaves you a llama farm (small passive + upkeep + flavor).
 - *Catastrophic (rare):* market-linked wipeout, serious illness, lawsuit.
-
-Balance: mostly minor, occasional major, rare catastrophic — texture without arbitrariness (Pillar 5).
 
 ---
 
-## 11. Scenarios, Goals & Perks (PRD §5) — *framework in M1, catalog in M5*
+## 11. Scenarios, Goals & Perks
 
 ### 11.1 Scenario
 ```
-Scenario = {
-  id, name, difficulty,              // tiered: easy → nightmare
-  start: { age, cash, bank, edu, home, traits[], flags },   // shapes how life begins
-  goal: Goal
-}
+Scenario = { id, name, difficulty, start:{ age, cash, bank, edu, home, traits[], flags }, goal }
 ```
-- **Normal Life** (baseline): age 18, modest parental cash, school certificate.
-- **Slumdog Millionaire** (hard): worst start (age 18, ~$0, no edu, bad neighborhood flag, maybe a debt);
-  goal = net worth ≥ $1M.
-- Many more, tiered.
+- **Normal Life:** age 18, modest parental cash, school certificate.
+- **Slumdog Millionaire (hard):** worst start (age 18, ~$0, no edu, rough flags/debt); goal = net worth ≥ $1M.
+- Many more, tiered easy → nightmare. The scenario shapes how life begins.
 
-### 11.2 Goal
+### 11.2 Goal (non-terminal)
 ```
 Goal = { id, test(state)→bool, reward?: PerkId }
 ```
-- **Non-terminal:** on `test` first passing, fire a **blocking celebration modal** (centered, dims screen);
-  on acknowledge, **play continues**.
-- Some goals award a **Perk**.
+On first pass → **blocking celebration modal** (centered, dims screen) → acknowledge → **play continues**.
+Some goals award a **Perk**.
 
 ### 11.3 Perks (meta-progression, opt-in)
 ```
-Perk = { id, name, desc, modifier(baseConfig) → config }   // toggled on/off per future run
+Perk = { id, name, desc, modifier(baseConfig)→config }   // toggled on/off before a run
 ```
-Unlocked by goals **or special scenarios/actions**; the player **toggles perks on/off before a run**.
-Examples: *Trust Fund* (start +$250k), *Fast Learner* (−20% study weeks), *Workaholic* (−1 stress across
-jobs), *Green Thumb* (+business growth), and **Lucky** (§5 — positive-event bias; only obtainable via
-special scenarios/actions, never bought). Perks stack on prestige bonuses but are chosen, so players can
-self-impose difficulty (or lean into an easy power run).
+Unlocked by goals or special scenarios/actions; toggled before a run. Examples: *Trust Fund* (start
++$250k), *Fast Learner* (−20% study weeks), *Workaholic* (−1 stress across jobs), *Green Thumb*
+(+business growth), **Lucky** (§5, special-unlock only). Perks are the **only** cross-run progression —
+there is no prestige.
 
 ---
 
-## 12. Prestige / Legacy (PRD §10, cold rebirth) — *M5 tuning*
+## 12. Longevity: the Elixir (the endgame spine)
 
-On death/breakdown → **cold rebirth as the same player** at the scenario's start age, keeping:
-- **Legacy points** earned this life, spendable/auto-applied as permanent bonuses.
-- Unlocked **achievements** and **perks** (perks remain toggleable).
-
-**Legacy earned (first pass, from prototype, [TUNE]):**
+The Elixir replaces prestige as the game's continuity mechanic and is the heart of the late game.
 ```
-earned = floor(sqrt(max(0, peakNetWorth)) / 50)
-       + achievementsUnlocked * 2
-       + floor((ageYears - startAge) / 10)
+drinkElixir():
+  totalWeeks = max(0, totalWeeks - ELIXIR_REWIND_WEEKS)   // ELIXIR_REWIND_WEEKS = 10*48 = 480
+  health     = clamp(health + ELIXIR_HEAL)                 // ELIXIR_HEAL = 25 [TUNE]
+  elixirPrice *= ELIXIR_PRICE_MULT                         // ELIXIR_PRICE_MULT ≈ 2.6 [TUNE]
+  elixirCount += 1
 ```
-**Legacy bonuses (per point P):** `startMoney = 500 + 300P`, `incomeMult = 1 + 0.01P`,
-`agingMult = max(0.4, 1 - 0.004P)`. Longevity **Elixir** (escalating cost, rewind ~10 yrs, restore health)
-stays as the in-life longevity sink.
+- **Turns the clock back ~10 years and restores some health**; each Elixir costs **much** more than the
+  last (`elixirPrice` compounds), so sustaining a very long life needs ever-growing income.
+- **This is the core long-term loop:** compound wealth (bank + market + business) faster than aging
+  erodes health, timing each Elixir to land before your health passes the point of no return. Mismanage
+  the timing or the money and the run ends (§1.3).
+- Base `elixirPrice` [TUNE] is set high enough that the first Elixir is a real mid/late-game milestone,
+  and the geometric price growth is what pushes players toward empires and market mastery.
 
 ---
 
-## 13. Balancing philosophy (how we'll tune)
+## 13. Balancing philosophy
 
-- **Weeks-to-milestone targets** guide numbers: e.g., a focused player reaches first business by ~year 3,
-  first $100k by ~year 6, first natural-death run in a single sitting.
-- **Three viable engines** (career salary, business net, market/property) should reach comparable
-  end-game wealth by different risk/effort profiles; no single one dominates (Pillar 4).
-- **Counter-pressures:** income scales, but so do aging decay, business management drain, and event
-  severity with wealth — so you must keep *spending* on health/happiness, not just hoard.
-- **Wealth ceiling $999T** anchors the top of every curve: the trillion tier should be reachable only by a
-  compounding empire across a very long life, and the game must stay numerically sane right up to the cap.
-- **Prices are pegged to real-world references** at the bottom/middle (tuition, salaries, homes) so the
-  early game *feels* grounded; the fantasy scaling lives at the top.
+- **Weeks-to-milestone targets** guide tuning: first business ~year 3, first $100k ~year 6, first Elixir
+  as a mid/late-game achievement, first natural death reachable in a sitting.
+- **Three viable engines** (career salary, business net, market/property) should reach comparable wealth
+  by different risk/effort profiles; none dominates (Pillar 4).
+- **Counter-pressures scale with success:** aging decay rises, event severity scales with wealth, and the
+  Elixir price compounds — so you must keep *spending* to stay alive, not just hoard.
+- **$999,999,999,999,999 ceiling** anchors the top; the trillion tier is empire-only.
+- **Everything is market-priced** at the bottom/middle so the early game feels grounded.
 - All constants live in `config/tuning.ts`; balance changes never touch logic (Tech Arch).
 
 ---
 
-## 14. Milestone mapping (build order, PRD §17)
+## 14. Milestone mapping (build order)
 
 | System | Milestone |
 |---|---|
-| Tick reducer, save/load, stats, death rules (turn-based, no time-skip) | **M1** |
-| Money scale + `moneyShort` (k/M/B/T, $999T cap); Education spine + majors; Tech ladder + entry jobs; Bank; leisure; Home + basic subs; light events; Normal Life scenario; goal/perk framework | **M1** |
-| All majors + all career ladders; Businesses (morale model); Food/Clothes lifestyle; auxiliaries | **M2** |
-| Market (stocks/commodities/crypto) + news feed; real-estate rent/flip | **M3** |
+| Tick reducer, save/load, stats, death rules, **Elixir** (turn-based, no time-skip) | **M1** |
+| Money scale + `moneyShort` (k/M/B/T, $999,999,999,999,999 cap); Education spine + majors; Tech ladder + entry jobs; Bank; leisure; Home + basic subs; light events; Normal Life scenario; goal/perk framework | **M1** |
+| All majors + all career ladders; Businesses (morale model); Food/Clothes; auxiliaries; Life Courses | **M2** |
+| Market (parody tickers, hidden volatility, tone-scaled news) + real-estate rent/flip/live-in | **M3** |
 | Relationships/family; skills/traits; deep health | **M4** |
-| Full scenario/goal/perk catalog; prestige tuning; achievements; balance pass | **M5** |
-| Company IPO + insider trading | **Roadmap** |
+| Full scenario/goal/perk catalog; achievements; balance pass | **M5** |
+| Business IPO + insider trading | **Roadmap** |
 
 ---
 
-*Next: **Technical Architecture** (stack, project structure, state shape, persistence, RNG, testing) and
-**Content/Data Spec** (concrete schemas + first data for scenarios, education, careers, businesses, assets,
-events). The Data Spec will carry the exhaustive tables this GDD references.*
+*Next: **Technical Architecture** (stack, project structure, state shape, persistence, seeded RNG,
+testing) and **Content/Data Spec** (concrete schemas + first data for scenarios, education, careers,
+businesses, assets, events). The Data Spec carries the exhaustive tables this GDD references.*
