@@ -1,9 +1,10 @@
 # Life Sim — Product Requirements Document
 
-> **Status:** DRAFT v0.2 — discussion document. Working title "Life Sim" (see §4, naming open).
-> v0.2 folds in the D1–D6 decisions plus the reworked education, career, lifestyle,
-> business, and market systems. Sections marked **⟡ OPEN** still need a call before the
-> Game Design Doc is finalized; they're collected in §16.
+> **Status:** DRAFT v0.3 — discussion document. Working title "Life Sim" (see §4, naming open).
+> v0.3 resolves the four open build/design decisions: **vertical-slice-first** build order,
+> **aggregate Team-Morale** business model, **strict-lock** major↔career coupling, and
+> **always-predictive** market news. Remaining open items are just naming and the (defaulted)
+> turn-based confirm; see §20.
 
 ---
 
@@ -114,9 +115,9 @@ A **spine** plus **branching majors** plus **auxiliary tracks**.
 Police Academy, Military Academy, Community College, trade certifications, etc. These aren't
 on the degree ladder; they unlock particular paths.
 
-**⟡ OPEN — how tightly does a major gate its career field?** Proposal: a matching major is
-*required* to enter that field's professional ladder; any degree lets you into *generalist*
-entry roles; a mismatched-but-present degree gives partial credit. (See §16-Q3.)
+**DECIDED — strict lock.** A field's professional ladder requires that field's specific
+major/credential; without it you cannot enter that field at all. No-education **entry jobs**
+(service/labor) remain open to everyone as the fallback for the un-credentialed (§8).
 
 ---
 
@@ -167,9 +168,9 @@ Businesses are **tiered by cost & product** and are **living operations**, not f
 - **Lifecycle:** a new business **starts at a loss**, moves to **breakeven**, then **profit** as it
   grows. Growth is driven by three inputs:
   1. **Owner competence match** — relevant education/experience accelerates growth.
-  2. **Team Morale** *(proposed model, ⟡ Q2)* — **one aggregate meter per business**, raised by
-     wages + profit-share/incentives, decayed by underpayment/over-extraction. Drives productivity
-     and attrition. *(Simpler alternative to per-employee relationships — pending confirmation.)*
+  2. **Team Morale (DECIDED — single aggregate meter per business)** — raised by wages +
+     profit-share/incentives, decayed by underpayment/over-extraction. Drives productivity and
+     attrition. **No individual-employee relationships.**
   3. **Investment** — capital you pour in to raise capacity/growth.
 - **Operations:** **invest money**, **hire employees**, **open branches** — each with a **cap**.
   More staff/branches raise the capacity ceiling *and* the payroll that morale depends on.
@@ -189,8 +190,8 @@ stays as the safe, low-yield option).
   Each asset has a price that moves with volatility per class.
 - **News page (new):** a **weekly feed of headlines** that *telegraph* likely moves, e.g.
   *"Taslo R&D announces sustainable-energy breakthrough"* → Taslo likely to rise; *"New mining tech
-  floods silver supply"* → silver likely to crash. **⟡ Q4:** how reliable is news — always
-  predictive, or a mix of solid reports and rumors/red herrings that reward judgment?
+  floods silver supply"* → silver likely to crash. **DECIDED — news is always predictive:**
+  every headline reliably telegraphs the coming move (readable; no red herrings).
 - **Real estate as an asset:** buy properties to **rent out** (passive income) or **flip**
   (buy → optional renovate over weeks → sell into a variable market for profit/loss). Distinct from
   your *residence* (which is lifestyle, §13).
@@ -257,7 +258,7 @@ Because everything above is "MVP," we sequence to stay playable:
 - **M5 — Meta:** full scenario/goal/perk catalog + prestige tuning + achievements.
 - **Roadmap (post-v1):** company IPOs + insider trading.
 
-*(This sequencing is a proposal — see §16-Q1.)*
+**DECIDED — vertical-slice-first (M1→M5).** All systems in scope; this is build order, not cuts.
 
 ---
 
@@ -279,18 +280,19 @@ Because everything above is "MVP," we sequence to stay playable:
 
 ---
 
-## 20. Open decisions for our discussion
+## 20. Decisions log
 
-- **Q1 — Build sequencing:** OK to build in the M1–M5 milestone order (vertical slice first),
-  even though all systems are in scope? (§17)
-- **Q2 — Business team model:** aggregate **Team Morale** meter per business (proposed), or do you
-  specifically want individual employees? (§11)
-- **Q3 — Major↔career coupling:** matching major required for a field's professional ladder, any
-  degree for generalist roles, mismatch = partial credit? (§7, §8)
-- **Q4 — News reliability:** market news always predictive, or a mix of reliable reports + rumors
-  that reward judgment? (§12)
-- **Naming:** lock a title, or keep "Life Sim" working title for now? (§4)
-- **Confirm:** turn-based only, no real-time idle clock. (§18)
+**Resolved:**
+- **Q1 — Build sequencing:** ✅ vertical-slice-first (M1→M5). (§17)
+- **Q2 — Business team model:** ✅ single aggregate **Team Morale** meter; no individual employees. (§11)
+- **Q3 — Major↔career coupling:** ✅ **strict lock** — field ladders require the matching major;
+  no-education entry jobs remain open to all. (§7, §8)
+- **Q4 — News reliability:** ✅ **always predictive** headlines. (§12)
+- **Business workforce, tone, difficulty/death, prestige (cold rebirth):** resolved in prior rounds.
+
+**Still open:**
+- **Naming:** working title "Life Sim"; frontrunner **Long Life** — lock anytime. (§4)
+- **Turn-based confirm:** proceeding turn-based only (no real-time idle clock) as the default; flag to change. (§18)
 
 ---
 
