@@ -1,6 +1,6 @@
 # Long Life — Technical Architecture
 
-> **Status:** v0.1 (current design of record). How **Long Life** is built: stack, project structure,
+> **Status:** v1.0 — FINALIZED. How **Long Life** is built: stack, project structure,
 > state model, the pure tick engine, seeded RNG, the data/tuning split, persistence, UI architecture,
 > and testing. Companion docs: `PRD.md`, `GAME_DESIGN.md`, and — next — the Content/Data Spec.
 

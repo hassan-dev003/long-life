@@ -1,6 +1,6 @@
 # Long Life — Content & Data Spec
 
-> **Status:** v0.1 (current design of record). The concrete TypeScript schemas and first real data tables
+> **Status:** v1.0 — FINALIZED. The concrete TypeScript schemas and first real data tables
 > that `src/content/` and `src/config/tuning.ts` will hold. This is the doc you edit to add or re-balance
 > content. Numbers are market-realistic first passes, flagged *[TUNE]* where provisional. Companions:
 > `PRD.md`, `GAME_DESIGN.md`, `TECHNICAL_ARCHITECTURE.md`.
@@ -366,9 +366,9 @@ pass; more archetypes — vineyards, ski lodges, orbital habitats — can slot i
 ## 10.5 Philanthropy (the ultra-endgame money sink)
 
 Once you're absurdly wealthy, you can pour fortunes into **doing genuine good** — the single most
-expensive content in the game. Each work costs **hundreds of billions to a trillion**, so only the truly
-well-off (net worth well into the hundreds of billions) ever touch it. It's the game's moral capstone: a
-way to convert an obscene fortune into legacy, happiness, and prestige-of-a-different-kind.
+expensive content in the game. Costs run from **$1 trillion up toward the money ceiling**, with wide gaps
+between each work, so only an empire deep into the trillions ever touches it. It's the game's moral
+capstone: a way to convert an obscene fortune into legacy, happiness, and prestige-of-a-different-kind.
 
 ```ts
 interface PhilanthropyDef {
@@ -377,23 +377,25 @@ interface PhilanthropyDef {
   achievement:string;       // per-work log; the meta-achievements are in §14
 }
 ```
-**The seven great works** [TUNE]:
+**The seven great works** [TUNE] — costs escalate with wide gaps from $1T to just under the cap:
 | id | name | cost | what it does |
 |---|---|---|---|
-| clean-water | Universal Clean Water | 200,000,000,000 | Safe drinking water for every community on Earth |
-| free-education | Global Free Education | 250,000,000,000 | Schooling for every child alive |
-| end-hunger | End World Hunger | 300,000,000,000 | Permanent global food security |
-| cure-cancer | Cure Cancer | 500,000,000,000 | Fund the research that ends a great killer |
-| space-colony | Fund a Mars Colony | 900,000,000,000 | Humanity's backup home |
-| reverse-climate | Reverse Climate Change | 1,000,000,000,000 | Planet-scale carbon capture & restoration |
-| eradicate-poverty | Eradicate Poverty | 1,000,000,000,000 | Lift the entire world above the poverty line |
+| clean-water | Universal Clean Water | 1,000,000,000,000 | Safe drinking water for every community on Earth |
+| free-education | Global Free Education | 5,000,000,000,000 | Schooling for every child alive |
+| end-hunger | End World Hunger | 20,000,000,000,000 | Permanent global food security |
+| cure-cancer | Cure Cancer | 75,000,000,000,000 | Fund the research that ends a great killer |
+| space-colony | Fund a Mars Colony | 200,000,000,000,000 | Humanity's backup home |
+| reverse-climate | Reverse Climate Change | 500,000,000,000,000 | Planet-scale carbon capture & restoration |
+| eradicate-poverty | Eradicate Poverty | 950,000,000,000,000 | Lift the entire world above the poverty line |
 
 Rules (full mechanics in GDD §12.5):
 - Each completed work is permanent, grants a one-time **happiness** boost, and logs a milestone.
 - **Completing any one** → achievement **`philanthropist`**.
 - **Completing all seven** → the game's biggest achievement **`humanitys-benefactor`**, which **unlocks the
-  special perk `beloved`** (§13) and the **`philanthropist` scenario** (§12).
-- Total to finish everything ≈ **$4.15T** — reachable only by an empire near the money ceiling.
+  special perk `beloved`** (§13) and the **`benefactor` scenario** (§12).
+- Costs span **$1T → $950T** (the priciest single work sits just under the $999T ceiling, so it's
+  affordable on its own). Funded **sequentially** — you earn back up between works — the seven total
+  ≈ **$1,751T** over a life, far more than can be held at once.
 
 ---
 
@@ -445,7 +447,7 @@ interface ScenarioDef {
 | slumdog | Slumdog Millionaire | hard | age 18, cash 0, `[]`, rough flags, small debt | net worth ≥ $1,000,000 → reward `lucky` |
 | trust-fund | Born Lucky | easy | age 18, cash 250,000, `['school']` | net worth ≥ $10M |
 | dropout | The Dropout | hard | age 18, cash 500, `['school']`, trait `hustler` | build a business to profit |
-| philanthropist | The Benefactor | nightmare | age 18, cash 0, `['school']` | complete all 7 great works (§10.5) → reward `beloved` — unlocked after first earning `humanitys-benefactor` |
+| benefactor | The Benefactor | nightmare | age 18, cash 0, `['school']` | complete all 7 great works (§10.5) → reward `beloved` — unlocked after first earning `humanitys-benefactor` |
 
 Completing a goal fires the blocking celebration modal; play continues (GDD §11.2). `slumdog` is one way
 to unlock the special **Lucky** trait/perk.

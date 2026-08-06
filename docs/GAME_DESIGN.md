@@ -1,6 +1,6 @@
 # Long Life — Game Design Document (GDD)
 
-> **Status:** v0.3 (current design of record). Concrete mechanics, formulas, ladders, and first-pass
+> **Status:** v1.0 — FINALIZED. Concrete mechanics, formulas, ladders, and first-pass
 > economy numbers for **Long Life**. Every number is a starting point and lives in a central tuning
 > config (see Technical Architecture); values flagged *[TUNE]* are especially provisional. Superseded
 > ideas are not tracked here. The GDD specs the full game and flags what belongs to **M1** vs. later
@@ -409,15 +409,16 @@ billions/trillions).
 
 ```ts
 fundWork(work):
-  requires cash + liquidatable ≥ work.cost      // hundreds of billions to $1T each
+  requires cash + liquidatable ≥ work.cost      // $1T to $950T each (wide gaps)
   spend(work.cost)
   happiness = clamp(happiness + work.happinessReward)
   completedWorks.add(work.id)
   if completedWorks.size == 1:  unlock achievement 'philanthropist'
   if completedWorks.size == 7:  unlock achievement 'humanitys-benefactor'
-                                 → unlock perk 'beloved' + scenario 'philanthropist'
+                                 → unlock perk 'beloved' + scenario 'benefactor'
 ```
-- **Seven great works** (Content §10.5), each $200B–$1T; total ≈ $4.15T to finish.
+- **Seven great works** (Content §10.5), costs escalating with wide gaps from **$1T to $950T** (the
+  priciest sits just under the $999T ceiling, so it's affordable alone); funded sequentially, ≈ $1,751T total.
 - Each is a permanent, one-time purchase granting a happiness boost and a milestone log line.
 - **Design intent:** a *win-flavored* endgame for the top fraction of runs — not a stat treadmill but a
   legacy the player chooses. It rewards the compounding empire with meaning (achievements + the Beloved

@@ -18,9 +18,10 @@ hunger, reverse climate change — the game's moral capstone.
 
 ## Status
 
-🚧 **In design.** The game is being specified before it's built. This repo currently holds the **design
-bible**; the M1 playable slice is the next step (see the roadmap). An earlier single-file React prototype
-(working title *The Long Game*) proved the core loop; this is the ground-up, structured rebuild.
+🚧 **Design finalized; build next.** The **design bible** (five docs in `docs/`) is complete and
+finalized at v1.0 — it specifies the game end to end. The **M1 playable slice** is the next step (see the
+roadmap). An earlier single-file React prototype proved the core loop; this is the ground-up, structured
+rebuild.
 
 ## The design bible
 

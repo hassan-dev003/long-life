@@ -1,6 +1,6 @@
 # Long Life — UI Design System
 
-> **Status:** v0.1 (current design of record). The visual & interaction language for **Long Life** —
+> **Status:** v1.0 — FINALIZED. The visual & interaction language for **Long Life** —
 > a **dark-first, green-accented** system built from current fintech/dashboard and idle-game UX research,
 > and from the `dataviz` skill's rules for the game's chart-heavy surfaces. This replaces the prototype's
 > look entirely. Companions: `PRD.md`, `GAME_DESIGN.md`, `TECHNICAL_ARCHITECTURE.md`, `CONTENT_DATA_SPEC.md`.
@@ -100,7 +100,7 @@ Responsive app shell — feels like an app, not a webpage.
 
 ```
 ┌───────────────────────────────────────────────────────────────┐
-│  TOP BAR:  ◷ Age 34 · Yr 17 · M3 W2   │  NET WORTH  $1.24M ▲    │  ← hero number, always visible
+│  TOP BAR:  ◷ Age 34 · Mar ○●○○        │  NET WORTH  $1.24M ▲    │  ← hero number, always visible
 │            Health ▉▉▉▉▉░ 78 (teal)   Happiness ▉▉▉▉░ 61 (gold)  │  ← stat meters
 ├──────────────┬────────────────────────────────────────────────┤
 │  NAV (rail)  │   TAB CONTENT (cards / panels)                   │
@@ -124,6 +124,26 @@ Responsive app shell — feels like an app, not a webpage.
   (jobs, programs, businesses, assets, properties, works).
 - Max content width ~1040px; generous 16–20px gutters; 12–14px radius on cards; hairline borders, not heavy.
 - Tabs gate by milestone (Market/Assets appear in M3, Giving in M5).
+
+### 4.1 Time display (the clock)
+
+The clock reads as **`Age {n} · {Mon} {week-dots}`** — e.g. `Age 34 · Mar ○●○○`. No "Year N" anywhere;
+age carries the sense of time passing.
+
+- **Age** is the primary temporal readout, in mono: `Age 34`. (Replaces the prototype's "Year 17".)
+- **Month** is the in-game month (1–12) shown as its **three-letter abbreviation**: `Jan Feb Mar Apr May
+  Jun Jul Aug Sep Oct Nov Dec`. Derived from `monthOfYear = floor((totalWeeks % 48) / 4) + 1`.
+- **Week-of-month** is **four dots**; the active week is the one filled (dark/accent) dot, the rest hollow:
+
+  | Week | Dots |
+  |---|---|
+  | 1 | ●○○○ |
+  | 2 | ○●○○ |
+  | 3 | ○○●○ |
+  | 4 | ○○○● |
+
+  Filled dot = `--accent` (or `--text-primary`); hollow = `--text-muted` outline. The dots advance one step
+  each week — a tiny, constant momentum cue in the top bar.
 
 ---
 

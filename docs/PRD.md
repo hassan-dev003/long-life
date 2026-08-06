@@ -1,6 +1,6 @@
 # Long Life — Product Requirements Document
 
-> **Status:** v0.5 (current design of record). This document describes the game as it stands now;
+> **Status:** v1.0 — FINALIZED. This document describes the game as it stands now;
 > superseded ideas are not tracked here. Companion docs: **Game Design** (`GAME_DESIGN.md`),
 > and — next — **Technical Architecture** and **Content/Data Spec**.
 
@@ -240,9 +240,10 @@ A real market is the primary risk/reward money system; the bank (§15) is the sa
 The most outrageously expensive content in the game — a way for the ultra-wealthy to convert a fortune
 into legacy and meaning.
 
-- **Seven great works**, each costing **hundreds of billions to a trillion** (cure cancer, end world
-  hunger, universal clean water, reverse climate change, global free education, fund a Mars colony,
-  eradicate poverty). Only reachable by players whose net worth is deep into the billions/trillions.
+- **Seven great works** (cure cancer, end world hunger, universal clean water, reverse climate change,
+  global free education, fund a Mars colony, eradicate poverty), with costs escalating in **wide gaps from
+  $1 trillion up to $950 trillion** — just under the money ceiling. Only reachable by an empire deep into
+  the trillions.
 - Each completed work grants a one-time **happiness** boost and a milestone.
 - **Completing any one** unlocks an achievement; **completing all seven** is the game's biggest
   achievement and unlocks the special **Beloved** perk (and a nightmare-tier **Benefactor scenario** that
