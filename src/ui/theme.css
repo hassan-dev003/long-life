@@ -1,0 +1,92 @@
+/*
+ * Long Life — design tokens (single source of truth).
+ * Dark-first, green-accented. Components reference roles (var names), never raw hex.
+ * Values transcribed from docs/UI_DESIGN.md §2–3.
+ */
+
+:root {
+  color-scheme: dark;
+
+  /* Surfaces — near-black, faint cool-green cast */
+  --bg: #0a0d0b; /* page plane */
+  --surface-1: #121714; /* cards, panels */
+  --surface-2: #1a201c; /* raised / hover / active row */
+  --well: #0e1210; /* inputs, progress tracks, chart wells */
+  --border: rgba(255, 255, 255, 0.08); /* hairline */
+  --border-strong: rgba(255, 255, 255, 0.14);
+
+  /* Ink */
+  --text-primary: #f4f7f5;
+  --text-secondary: #9fb0a8;
+  --text-muted: #6a7873;
+
+  /* Accent — MONEY green (the one highlight) */
+  --accent: #2fe37a;
+  --accent-deep: #16a34a;
+  --accent-wash: rgba(47, 227, 122, 0.14);
+
+  /* Functional status (each means one thing) */
+  --positive: #2fe37a;
+  --negative: #e5484d;
+  --warning: #fb923c;
+  --info: #3987e5;
+
+  /* Stat identities (kept OFF the money-green) */
+  --health: #2dd4bf; /* teal — vitality */
+  --happiness: #fbbf24; /* gold — warmth */
+
+  /* Typography */
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
+
+  /* Radii & spacing */
+  --radius-card: 13px;
+  --radius-pill: 999px;
+  --gutter: 18px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-ui);
+  font-size: 14px;
+  line-height: 1.45;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+#root {
+  min-height: 100%;
+}
+
+/* Every money / age / stat / ticker figure uses mono + tabular figures. */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* Motion respects the user's preference (UI_DESIGN §7). */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
