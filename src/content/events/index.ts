@@ -29,6 +29,7 @@ export interface EventDef {
   eligible: (s: GameState) => boolean;
   weight: (s: GameState) => number;
   kind: 'outcome' | 'choice';
+  prompt?: string; // shown in the decision modal for choice events
   apply?: (s: GameState, rng: Rng) => void;
   choices?: EventChoice[];
 }
@@ -156,6 +157,8 @@ export const EVENTS: EventDef[] = [
     // Worse (more likely) without insurance.
     weight: (s) => (hasInsurance(s) ? 0.6 : 1.4),
     kind: 'choice',
+    prompt:
+      'A worrying symptom sends you to the doctor. They recommend treatment — but it isn’t cheap. Pay up, or tough it out and hope it passes?',
     choices: [
       {
         id: 'treat',
@@ -193,6 +196,8 @@ export const EVENTS: EventDef[] = [
     eligible: () => true,
     weight: (s) => (hasTrait(s, 'iron-constitution') ? 0.5 : 1),
     kind: 'choice',
+    prompt:
+      'A serious illness strikes. The best care would cost a fortune — but enduring it on your own could be devastating.',
     choices: [
       {
         id: 'pay',
