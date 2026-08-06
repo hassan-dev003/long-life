@@ -65,20 +65,15 @@ interface GameStore {
   ackGoal: () => void;
 }
 
-// Debounced run autosave to avoid thrashing localStorage on rapid clicks.
-let saveTimer: ReturnType<typeof setTimeout> | null = null;
-function scheduleSaveRun(state: GameState): void {
-  if (saveTimer) clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => saveRun(state), 250);
-}
-
 export const useGameStore = create<GameStore>((set, get) => {
-  /** Commit a new run state: sync the Profile, persist both, update the store. */
+  /** Commit a new run state: sync the Profile, persist both, update the store.
+   *  Saves are synchronous — the game is turn-based (a few writes/second at most),
+   *  so nothing is ever lost on a refresh (success criterion: closing loses nothing). */
   function commit(next: GameState): void {
     const prevProfile = get().profile;
     const profile = absorbRun(prevProfile, next, ageYears(next));
     if (profile !== prevProfile) saveProfile(profile);
-    scheduleSaveRun(next);
+    saveRun(next);
     set({ game: next, profile });
   }
 
