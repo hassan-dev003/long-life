@@ -224,12 +224,31 @@ A real market is the primary risk/reward money system; the bank (§15) is the sa
   soft-positive item ("in talks to onboard a partner") nudges the price up a little, while a strong,
   explicit one ("achieved an R&D breakthrough") moves it hard. Reading tone is a skill. News is the
   signal; hidden volatility is the fog.
-- **Real estate** (own a property; slow price series + a **quality** stat):
+- **Real estate** (own a property; slow price series + a **quality** stat). The catalog runs from a
+  starter studio all the way to skyscrapers, garden estates, private islands, and whole city districts —
+  **prices climb into the hundreds of billions and get wildly profitable at the top.** Three uses:
   - **Rent** it out (passive income − upkeep/vacancy risk).
   - **Flip** it (renovate over weeks to raise quality/value → sell into the variable market).
   - **Live in it** — removes all separate housing costs; the property's **quality and price drive your
     weekly health/happiness passives**. Renovating improves them, but each property caps how good the
     living-boost gets, set by its **price bracket**.
+
+---
+
+## 13.5 Philanthropy (endgame giving)
+
+The most outrageously expensive content in the game — a way for the ultra-wealthy to convert a fortune
+into legacy and meaning.
+
+- **Seven great works**, each costing **hundreds of billions to a trillion** (cure cancer, end world
+  hunger, universal clean water, reverse climate change, global free education, fund a Mars colony,
+  eradicate poverty). Only reachable by players whose net worth is deep into the billions/trillions.
+- Each completed work grants a one-time **happiness** boost and a milestone.
+- **Completing any one** unlocks an achievement; **completing all seven** is the game's biggest
+  achievement and unlocks the special **Beloved** perk (and a nightmare-tier **Benefactor scenario** that
+  challenges you to do it all again from nothing).
+- Doubles as a genuine *win-flavored* goal for the top 0.001% of runs and a meaningful sink for money
+  that would otherwise pile up against the ceiling.
 
 ---
 
@@ -301,7 +320,8 @@ business are the real growth engines.
 - **M3 — Markets & property:** market tabs + parody tickers + hidden volatility + news feed +
   real-estate rent/flip/live-in.
 - **M4 — Life texture:** relationships/family + skills/traits + Life Courses + deep health.
-- **M5 — Meta:** full scenario/goal/perk catalog + achievements + balance pass.
+- **M5 — Meta:** full scenario/goal/perk catalog + achievements + **Philanthropy (the seven great works)**
+  + balance pass.
 - **Roadmap (post-v1):** business IPO + insider trading.
 
 ---

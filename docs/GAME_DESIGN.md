@@ -401,6 +401,30 @@ drinkElixir():
 
 ---
 
+## 12.5 Philanthropy (the moral capstone)
+
+The most expensive content in the game and a deliberate sink for fortunes that would otherwise pile up
+against the money ceiling. Available only when you can actually afford it (net worth deep into the
+billions/trillions).
+
+```ts
+fundWork(work):
+  requires cash + liquidatable ≥ work.cost      // hundreds of billions to $1T each
+  spend(work.cost)
+  happiness = clamp(happiness + work.happinessReward)
+  completedWorks.add(work.id)
+  if completedWorks.size == 1:  unlock achievement 'philanthropist'
+  if completedWorks.size == 7:  unlock achievement 'humanitys-benefactor'
+                                 → unlock perk 'beloved' + scenario 'philanthropist'
+```
+- **Seven great works** (Content §10.5), each $200B–$1T; total ≈ $4.15T to finish.
+- Each is a permanent, one-time purchase granting a happiness boost and a milestone log line.
+- **Design intent:** a *win-flavored* endgame for the top fraction of runs — not a stat treadmill but a
+  legacy the player chooses. It rewards the compounding empire with meaning (achievements + the Beloved
+  perk) rather than yet another multiplier, keeping faith with the "no free snowball" pillar.
+
+---
+
 ## 13. Balancing philosophy
 
 - **Weeks-to-milestone targets** guide tuning: first business ~year 3, first $100k ~year 6, first Elixir
@@ -424,7 +448,7 @@ drinkElixir():
 | All majors + all career ladders; Businesses (morale model); Food/Clothes; auxiliaries; Life Courses | **M2** |
 | Market (parody tickers, hidden volatility, tone-scaled news) + real-estate rent/flip/live-in | **M3** |
 | Relationships/family; skills/traits; deep health | **M4** |
-| Full scenario/goal/perk catalog; achievements; balance pass | **M5** |
+| Full scenario/goal/perk catalog; achievements; **Philanthropy (seven great works)**; balance pass | **M5** |
 | Business IPO + insider trading | **Roadmap** |
 
 ---

@@ -326,10 +326,15 @@ Each week the engine publishes **0–3** of these, each on **one** asset (GDD §
 interface PropertyDef {
   id:string; name:string; class:'residential'|'commercial';
   basePrice:number; baseRentPerWeek:number;
-  livingH:number; livingHp:number;   // passives when lived-in at quality=100
+  livingH:number; livingHp:number;   // passives when lived-in at quality=100 (residential only)
   qualityCapByPrice:number;          // ceiling multiplier the price bracket allows
 }
 ```
+Real estate spans from a starter unit to nation-scale holdings — **the range runs wild, into the
+hundreds of billions, and gets wildly profitable at the top.** `residential` can be lived in (§ GDD 8.4);
+`commercial` is rent/flip only (no living passives) but throws off enormous rent.
+
+**Residential (livable):**
 | id | name | basePrice | rent/wk | livingH | livingHp |
 |---|---|---|---|---|---|
 | studio-unit | Studio Unit | 180,000 | 350 | 0.3 | 0.3 |
@@ -337,8 +342,58 @@ interface PropertyDef {
 | suburban-house | Suburban House | 750,000 | 1,400 | 1.0 | 1.1 |
 | lakeside-villa | Lakeside Villa | 3,200,000 | 5,500 | 1.8 | 2.2 |
 | city-penthouse | City Penthouse | 8,000,000 | 12,000 | 2.6 | 3.0 |
+| beachfront-estate | Beachfront Estate | 25,000,000 | 35,000 | 3.2 | 3.6 |
+| historic-chateau | Historic Château | 90,000,000 | 110,000 | 3.6 | 4.2 |
+| botanical-estate | Botanical Garden Estate | 320,000,000 | 380,000 | 4.0 | 4.8 |
+| private-island | Private Island | 850,000,000 | 900,000 | 4.4 | 5.2 |
+| private-archipelago | Private Archipelago | 6,500,000,000 | 6,800,000 | 5.0 | 5.8 |
 
-Rent / flip / live-in behavior and the renovation-cap rule are in GDD §8.4.
+**Commercial (rent / flip only — wildly profitable):**
+| id | name | basePrice | rent/wk |
+|---|---|---|---|
+| retail-strip | Retail Strip Mall | 4,000,000 | 9,000 |
+| office-tower | Office Tower | 120,000,000 | 320,000 |
+| downtown-skyscraper | Downtown Skyscraper | 1,800,000,000 | 5,200,000 |
+| mega-complex | Mega Shopping Complex | 12,000,000,000 | 38,000,000 |
+| resort-chain | Island Resort Chain | 45,000,000,000 | 160,000,000 |
+| city-district | City District | 200,000,000,000 | 780,000,000 |
+
+Rent / flip / live-in behavior and the renovation-cap-by-price rule are in GDD §8.4. *(Table is a first
+pass; more archetypes — vineyards, ski lodges, orbital habitats — can slot in along the same curve.)*
+
+---
+
+## 10.5 Philanthropy (the ultra-endgame money sink)
+
+Once you're absurdly wealthy, you can pour fortunes into **doing genuine good** — the single most
+expensive content in the game. Each work costs **hundreds of billions to a trillion**, so only the truly
+well-off (net worth well into the hundreds of billions) ever touch it. It's the game's moral capstone: a
+way to convert an obscene fortune into legacy, happiness, and prestige-of-a-different-kind.
+
+```ts
+interface PhilanthropyDef {
+  id:string; name:string; cost:number; desc:string;
+  happinessReward:number;   // one-time boost — doing enormous good feels enormous
+  achievement:string;       // per-work log; the meta-achievements are in §14
+}
+```
+**The seven great works** [TUNE]:
+| id | name | cost | what it does |
+|---|---|---|---|
+| clean-water | Universal Clean Water | 200,000,000,000 | Safe drinking water for every community on Earth |
+| free-education | Global Free Education | 250,000,000,000 | Schooling for every child alive |
+| end-hunger | End World Hunger | 300,000,000,000 | Permanent global food security |
+| cure-cancer | Cure Cancer | 500,000,000,000 | Fund the research that ends a great killer |
+| space-colony | Fund a Mars Colony | 900,000,000,000 | Humanity's backup home |
+| reverse-climate | Reverse Climate Change | 1,000,000,000,000 | Planet-scale carbon capture & restoration |
+| eradicate-poverty | Eradicate Poverty | 1,000,000,000,000 | Lift the entire world above the poverty line |
+
+Rules (full mechanics in GDD §12.5):
+- Each completed work is permanent, grants a one-time **happiness** boost, and logs a milestone.
+- **Completing any one** → achievement **`philanthropist`**.
+- **Completing all seven** → the game's biggest achievement **`humanitys-benefactor`**, which **unlocks the
+  special perk `beloved`** (§13) and the **`philanthropist` scenario** (§12).
+- Total to finish everything ≈ **$4.15T** — reachable only by an empire near the money ceiling.
 
 ---
 
@@ -390,6 +445,7 @@ interface ScenarioDef {
 | slumdog | Slumdog Millionaire | hard | age 18, cash 0, `[]`, rough flags, small debt | net worth ≥ $1,000,000 → reward `lucky` |
 | trust-fund | Born Lucky | easy | age 18, cash 250,000, `['school']` | net worth ≥ $10M |
 | dropout | The Dropout | hard | age 18, cash 500, `['school']`, trait `hustler` | build a business to profit |
+| philanthropist | The Benefactor | nightmare | age 18, cash 0, `['school']` | complete all 7 great works (§10.5) → reward `beloved` — unlocked after first earning `humanitys-benefactor` |
 
 Completing a goal fires the blocking celebration modal; play continues (GDD §11.2). `slumdog` is one way
 to unlock the special **Lucky** trait/perk.
@@ -408,6 +464,7 @@ interface PerkDef { id:PerkId; name:string; desc:string; modify:(cfg:RunConfig)=
 | workaholic | Workaholic | −1 stress (h & hp) across all jobs |
 | green-thumb | Green Thumb | businessGrowthMod +0.2 |
 | lucky | Lucky | eventLuck +0.5 (positive-event bias) — **special-unlock only** |
+| beloved | Beloved | +happiness passive & eventLuck +0.25 — **special-unlock only** (complete all 7 great works) |
 
 Perks are toggled on before a run (Profile.activePerks) and applied to the run's base config. They are the
 only cross-run progression.
@@ -422,8 +479,9 @@ interface AchievementDef { id:string; name:string; emoji:string; desc:string;
 ```
 Seed set: `first-job`, `graduate` (`degree:*`), `phd`, `med-licensed`, `entrepreneur` (own a business),
 `mogul` (3 businesses), `homeowner` (own a residence), `six-figures` (peakNet ≥ 100k),
-`millionaire` (≥ 1M), `deca` (≥ 10M), `billionaire` (≥ 1B), `first-elixir`, `ageless` (5 elixirs),
-`centenarian` (age 100), `methuselah` (age 150), `zen` (health & happiness both ≥ 90). Plus the
+`millionaire` (≥ 1M), `deca` (≥ 10M), `billionaire` (≥ 1B), `trillionaire` (≥ 1T), `first-elixir`,
+`ageless` (5 elixirs), `centenarian` (age 100), `methuselah` (age 150), `zen` (health & happiness both ≥
+90), **`philanthropist`** (complete any 1 great work), **`humanitys-benefactor`** (complete all 7). Plus the
 career-gate achievements referenced by ladders (`shipped-a-feature`, `owned-a-system`, `managed-a-team`,
 `shipped-10m-product`).
 
