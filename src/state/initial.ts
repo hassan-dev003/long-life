@@ -29,6 +29,9 @@ export function freshLife(
   const rngState =
     seed ?? (seedFromString(scenarioId) ^ (Date.now() & 0xffffffff)) >>> 0;
 
+  const startCash = clampMoney(start.cash + cfg.startCashBonus);
+  const startBank = clampMoney(start.bank);
+
   return {
     meta: {
       schemaVersion: SCHEMA_VERSION,
@@ -47,8 +50,8 @@ export function freshLife(
       weeksAtZeroHappy: 0,
     },
     money: {
-      cash: clampMoney(start.cash + cfg.startCashBonus),
-      bank: clampMoney(start.bank),
+      cash: startCash,
+      bank: startBank,
       bankInterestEarned: 0,
       lifetimeEarned: 0,
       weeksInDebt: 0,
@@ -71,7 +74,7 @@ export function freshLife(
     relationships: [],
     elixir: { count: 0, price: TUNING.ELIXIR_BASE_PRICE },
     philanthropy: [],
-    progress: { peakNet: clampMoney(start.cash + cfg.startCashBonus + start.bank), goalsMet: [], runAchievements: [] },
+    progress: { peakNet: clampMoney(startCash + startBank), goalsMet: [], runAchievements: [] },
     log: [
       {
         week: 0,

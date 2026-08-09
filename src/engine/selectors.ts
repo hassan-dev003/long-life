@@ -7,7 +7,7 @@ import { clampMoney } from '../util/money';
 import { ROLE_BY_ID, ladderOfRole, type RoleDef } from '../content/careers';
 import { meets, type MeetsResult } from './eligibility';
 import { computeRunMods, weeklyInterest, weeklyUpkeep, type UpkeepBreakdown } from './economy';
-import type { Field, GameState } from '../state/types';
+import type { GameState } from '../state/types';
 
 const MONTH_ABBR = [
   'Jan',
@@ -35,7 +35,7 @@ export function monthOfYear(s: GameState): number {
 
 /** Week-of-month 1..4. */
 export function weekOfMonth(s: GameState): number {
-  return (Math.floor(s.clock.totalWeeks / 1) % 4) + 1;
+  return (s.clock.totalWeeks % 4) + 1;
 }
 
 /** Clock display parts for the top bar: "Age 34 · Mar ○●○○". */
@@ -52,11 +52,6 @@ export function currentRole(s: GameState): RoleDef | null {
   return s.career.roleId ? (ROLE_BY_ID[s.career.roleId] ?? null) : null;
 }
 
-/** Weekly passive income outside of a paycheck. M1: none (bank interest is handled in the tick). */
-export function passiveIncome(_s: GameState): number {
-  return 0;
-}
-
 /**
  * The next role up the current ladder and whether the player qualifies. Returns
  * null if the player isn't on a ladder or is already at the top.
@@ -71,11 +66,6 @@ export function nextPromotion(
   const next = ladder.roles[idx + 1];
   if (!next) return null; // at the top
   return { role: next, result: meets(s, next.gate) };
-}
-
-/** Field experience in weeks for a given field. */
-export function fieldExp(s: GameState, field: Field): number {
-  return s.career.fieldExp[field] ?? 0;
 }
 
 /** Purchases draw from cash-in-hand only — bank savings must be withdrawn first. */
