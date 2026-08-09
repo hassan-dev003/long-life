@@ -108,4 +108,17 @@ describe('elixir', () => {
     expect(res.ok).toBe(false);
     expect(res.state).toBe(s);
   });
+
+  it('gates purchases on cash-in-hand only — bank savings do not count', () => {
+    const s = S();
+    s.money.cash = 0;
+    s.money.bank = 10_000_000; // plenty in the bank, none in hand
+    expect(buyElixir(s).ok).toBe(false); // elixir needs cash
+    expect(enroll(s, 'diploma').ok).toBe(false); // tuition needs cash
+    // With the same total wealth moved to cash, both become affordable.
+    s.money.cash = 10_000_000;
+    s.money.bank = 0;
+    expect(buyElixir(s).ok).toBe(true);
+    expect(enroll(s, 'diploma').ok).toBe(true);
+  });
 });

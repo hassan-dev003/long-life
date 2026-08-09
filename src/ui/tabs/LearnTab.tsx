@@ -58,9 +58,13 @@ export function LearnTab() {
           const owned = game.education.credentials.includes(credId);
           const req = enrollReq(p.id, major);
           const gate = meets(game, req);
-          const affordable = game.money.cash + game.money.bank >= p.cost;
+          const affordable = game.money.cash >= p.cost;
           const canEnroll = !owned && !enrolled && gate.ok && affordable;
-          const reason = !gate.ok ? gate.reason : !affordable ? 'Can’t afford tuition' : undefined;
+          const reason = !gate.ok
+            ? gate.reason
+            : !affordable
+              ? 'Not enough cash (withdraw from bank first)'
+              : undefined;
 
           return (
             <Card

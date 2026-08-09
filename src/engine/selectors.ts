@@ -78,8 +78,9 @@ export function fieldExp(s: GameState, field: Field): number {
   return s.career.fieldExp[field] ?? 0;
 }
 
+/** Purchases draw from cash-in-hand only — bank savings must be withdrawn first. */
 export function elixirAffordable(s: GameState): boolean {
-  return s.money.cash + s.money.bank >= s.elixir.price;
+  return s.money.cash >= s.elixir.price;
 }
 
 /**

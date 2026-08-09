@@ -84,6 +84,7 @@ export function LifeTab() {
       <div className="grid">
         {SUBSCRIPTIONS.map((sub) => {
           const active = game.lifestyle.subscriptions.includes(sub.id);
+          const canAfford = active || game.money.cash >= sub.cost;
           return (
             <Card
               key={sub.id}
@@ -100,7 +101,13 @@ export function LifeTab() {
                 </>
               }
             >
-              <Button variant={active ? 'danger' : 'ghost'} block onClick={() => toggleSub(sub.id)}>
+              <Button
+                variant={active ? 'danger' : 'ghost'}
+                block
+                disabled={!canAfford}
+                title={!canAfford ? 'Not enough cash (withdraw from bank first)' : undefined}
+                onClick={() => toggleSub(sub.id)}
+              >
                 {active ? 'Cancel' : 'Subscribe'}
               </Button>
             </Card>

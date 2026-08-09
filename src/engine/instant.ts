@@ -21,15 +21,16 @@ import type { CredentialId, GameState, Major, Requirement } from '../state/types
 
 const clone = (s: GameState): GameState => structuredClone(s);
 
-/** Deduct an amount from cash, then bank for any shortfall. Assumes affordability was checked. */
+/**
+ * Purchases are paid from cash-in-hand only — bank savings are a separate vault
+ * you must withdraw from first. (The opt-in "pay upkeep from bank" automation is
+ * the only path that touches the bank for costs, and only for recurring upkeep.)
+ */
 function pay(s: GameState, amount: number): void {
-  const fromCash = Math.min(s.money.cash, amount);
-  s.money.cash = clampMoney(s.money.cash - fromCash);
-  const rest = amount - fromCash;
-  if (rest > 0) s.money.bank = clampMoney(s.money.bank - rest);
+  s.money.cash = clampMoney(s.money.cash - amount);
 }
 
-const affordable = (s: GameState, amount: number): boolean => s.money.cash + s.money.bank >= amount;
+const affordable = (s: GameState, amount: number): boolean => s.money.cash >= amount;
 
 // ── Education ─────────────────────────────────────────────────────────────────
 
@@ -190,14 +191,17 @@ export function setFood(state: GameState, foodId: string): GameState {
   return s;
 }
 
-/** Toggle a subscription. Adding charges its one-time signup cost. */
+/** Toggle a subscription. Adding charges its one-time signup cost from cash. */
 export function toggleSubscription(state: GameState, subId: string): GameState {
   const sub = SUBSCRIPTION_BY_ID[subId];
   if (!sub) return state;
+  const isActive = state.lifestyle.subscriptions.includes(subId);
+  // Can't sign up for something you can't cover in cash.
+  if (!isActive && sub.cost > 0 && !affordable(state, sub.cost)) return state;
+
   const s = clone(state);
-  const idx = s.lifestyle.subscriptions.indexOf(subId);
-  if (idx >= 0) {
-    s.lifestyle.subscriptions.splice(idx, 1);
+  if (isActive) {
+    s.lifestyle.subscriptions.splice(s.lifestyle.subscriptions.indexOf(subId), 1);
     pushLog(s, 'info', `Cancelled ${sub.name}.`);
   } else {
     if (sub.cost > 0) pay(s, sub.cost);

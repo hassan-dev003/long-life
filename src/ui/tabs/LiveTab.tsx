@@ -15,8 +15,7 @@ export function LiveTab() {
   const role = currentRole(game);
   const enrolled = game.education.enrolled;
   const canElixir = elixirAffordable(game);
-  const liquid = game.money.cash + game.money.bank;
-  const elixirPct = Math.min(100, (liquid / game.elixir.price) * 100);
+  const elixirPct = Math.min(100, (game.money.cash / game.elixir.price) * 100);
 
   return (
     <div>
@@ -84,8 +83,8 @@ export function LiveTab() {
           <ProgressBar pct={elixirPct} />
           <div className="card-desc">
             {canElixir
-              ? 'You can afford it.'
-              : `${moneyShort(liquid)} / ${moneyShort(game.elixir.price)}`}
+              ? 'You can afford it (paid from cash).'
+              : `${moneyShort(game.money.cash)} / ${moneyShort(game.elixir.price)} cash`}
           </div>
           <Button
             variant="primary"
