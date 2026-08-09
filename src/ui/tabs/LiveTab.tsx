@@ -10,7 +10,11 @@ export function LiveTab() {
   const game = useGameStore((s) => s.game)!;
   const advance = useGameStore((s) => s.advance);
   const purchaseElixir = useGameStore((s) => s.purchaseElixir);
-  const blocked = !!game.pendingEvent || !!game.pendingGoal || game.status !== 'alive';
+  const blocked =
+    !!game.pendingEvent ||
+    !!game.pendingGoal ||
+    game.pendingBankruptcyWarning ||
+    game.status !== 'alive';
 
   const role = currentRole(game);
   const enrolled = game.education.enrolled;
@@ -46,22 +50,32 @@ export function LiveTab() {
       </h2>
       <p className="tab-sub">Rest and recover — each is a week well spent.</p>
       <div className="act-grid">
-        {ACTIVITIES.map((a) => (
-          <button
-            key={a.id}
-            className="act"
-            disabled={blocked}
-            onClick={() => advance(activity(a.id))}
-          >
-            <span className="act-emoji">{a.emoji}</span>
-            <span className="act-name">{a.name}</span>
-            <div className="tag-row">
-              {a.cost > 0 ? <Tag tone="neg">−{moneyShort(a.cost)}</Tag> : <Tag tone="pos">free</Tag>}
-              {a.h > 0 && <Tag>+{a.h}❤</Tag>}
-              {a.hp > 0 && <Tag>+{a.hp}☺</Tag>}
-            </div>
-          </button>
-        ))}
+        {ACTIVITIES.map((a) => {
+          // Free activities (Rest/Walk/Meditate) are always available — vital for
+          // clawing back out of debt.
+          const unaffordable = a.cost > 0 && game.money.cash < a.cost;
+          return (
+            <button
+              key={a.id}
+              className="act"
+              disabled={blocked || unaffordable}
+              title={unaffordable ? 'Not enough cash (withdraw from bank first)' : undefined}
+              onClick={() => advance(activity(a.id))}
+            >
+              <span className="act-emoji">{a.emoji}</span>
+              <span className="act-name">{a.name}</span>
+              <div className="tag-row">
+                {a.cost > 0 ? (
+                  <Tag tone="neg">−{moneyShort(a.cost)}</Tag>
+                ) : (
+                  <Tag tone="pos">free</Tag>
+                )}
+                {a.h > 0 && <Tag>+{a.h}❤</Tag>}
+                {a.hp > 0 && <Tag>+{a.hp}☺</Tag>}
+              </div>
+            </button>
+          );
+        })}
       </div>
 
       <h2 className="tab-title" style={{ fontSize: 15, marginTop: 20 }}>

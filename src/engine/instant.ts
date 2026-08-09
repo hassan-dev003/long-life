@@ -235,3 +235,10 @@ export function acknowledgeGoal(state: GameState): GameState {
   s.pendingGoal = null;
   return s;
 }
+
+export function acknowledgeWarning(state: GameState): GameState {
+  if (!state.pendingBankruptcyWarning) return state;
+  const s = clone(state);
+  s.pendingBankruptcyWarning = false;
+  return s;
+}

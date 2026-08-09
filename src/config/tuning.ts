@@ -24,6 +24,9 @@ export const TUNING = {
 
   // Death / breakdown (GDD §1.3)
   DEATH_GRACE_WEEKS: 3,
+  // Bankruptcy: cash below zero for this many consecutive weeks ends the run.
+  // The first negative week fires a warning; the next unrecovered week is terminal.
+  BANKRUPTCY_GRACE_WEEKS: 2,
 
   // Money
   MONEY_CAP,

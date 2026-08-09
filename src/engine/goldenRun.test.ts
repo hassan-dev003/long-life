@@ -19,6 +19,7 @@ import {
   buyElixir,
   resolveEvent,
   acknowledgeGoal,
+  acknowledgeWarning,
 } from './instant';
 import { EVENT_BY_ID } from '../content/events';
 import { ageYears, netWorth, nextPromotion } from './selectors';
@@ -31,6 +32,7 @@ const SEED = 20260806;
  *  possibly-updated state and whether it consumed the turn. */
 function handleModals(s: GameState): { s: GameState; handled: boolean } {
   if (s.pendingGoal) return { s: acknowledgeGoal(s), handled: true };
+  if (s.pendingBankruptcyWarning) return { s: acknowledgeWarning(s), handled: true };
   if (s.pendingEvent) {
     const ev = EVENT_BY_ID[s.pendingEvent.eventId];
     const choiceId = ev?.choices?.[0]?.id ?? '';
@@ -55,8 +57,8 @@ const surviveOr =
 function playLife(seed: number): GameState {
   let s = freshLife('normal-life', [], seed);
 
-  // ── Educate: Diploma → CS Degree (cash granted to reach the tuition tier) ──
-  s.money.cash += 200_000; // checkpoint grant #1 (education)
+  // ── Educate: Diploma → CS Degree (cash granted to cover tuition + stay solvent) ──
+  s.money.cash += 500_000; // checkpoint grant #1 (education)
   s = enroll(s, 'diploma').state;
   for (let i = 0; i < 500 && s.education.enrolled && s.status === 'alive'; i++) {
     s = advance(s, surviveOr(study()));
@@ -128,6 +130,7 @@ describe('golden run — a full life, deterministically', () => {
           "first-elixir",
           "first-job",
           "graduate",
+          "millionaire",
           "six-figures",
         ],
         "age": 27,
@@ -139,8 +142,8 @@ describe('golden run — a full life, deterministically', () => {
         "elixirCount": 1,
         "happiness": 34,
         "health": 0,
-        "netWorth": 747480,
-        "peakNet": 927720,
+        "netWorth": 1047480,
+        "peakNet": 1227720,
         "role": null,
         "status": "dead",
         "totalWeeks": 474,

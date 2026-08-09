@@ -10,7 +10,7 @@ import { clampMoney } from '../util/money';
 import { TUNING } from '../config/tuning';
 import type { GameState, PerkId } from './types';
 
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;
 
 /**
  * Create a new life. `seed` is optional — pass a fixed number for reproducible
@@ -51,6 +51,7 @@ export function freshLife(
       bank: clampMoney(start.bank),
       bankInterestEarned: 0,
       lifetimeEarned: 0,
+      weeksInDebt: 0,
     },
     banking: { autoDepositPct: 0, payUpkeepFromBank: false, overdraft: false },
     education: { credentials: [...start.credentials], enrolled: null },
@@ -80,6 +81,7 @@ export function freshLife(
     ],
     pendingEvent: null,
     pendingGoal: null,
+    pendingBankruptcyWarning: false,
     status: 'alive',
   };
 }

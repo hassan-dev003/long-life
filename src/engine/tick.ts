@@ -25,10 +25,11 @@ import type { TickCtx } from './context';
 import type { GameState } from '../state/types';
 
 export function tick(state: GameState, action: Action): GameState {
-  // No advancing a finished life, or one waiting on a decision.
+  // No advancing a finished life, or one waiting on a decision/warning.
   if (state.status !== 'alive') return state;
   if (state.pendingEvent) return state;
   if (state.pendingGoal) return state;
+  if (state.pendingBankruptcyWarning) return state;
 
   const s: GameState = structuredClone(state);
   const rng = new Rng(s.meta.rngState);

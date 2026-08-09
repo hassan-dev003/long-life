@@ -43,6 +43,25 @@ describe('run persistence', () => {
     clearRun();
     expect(loadRun()).toBeNull();
   });
+
+  it('migrates a v1 save (no bankruptcy fields) up to the current schema', () => {
+    // A v1 run predates weeksInDebt / pendingBankruptcyWarning.
+    const v1 = JSON.parse(JSON.stringify(freshLife('normal-life', [], 1))) as {
+      meta: { schemaVersion: number };
+      money: Record<string, number>;
+      pendingBankruptcyWarning?: boolean;
+    };
+    v1.meta.schemaVersion = 1;
+    delete v1.money.weeksInDebt;
+    delete v1.pendingBankruptcyWarning;
+    localStorage.setItem(RUN_KEY, JSON.stringify(v1));
+
+    const loaded = loadRun();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.meta.schemaVersion).toBe(2);
+    expect(loaded!.money.weeksInDebt).toBe(0);
+    expect(loaded!.pendingBankruptcyWarning).toBe(false);
+  });
 });
 
 describe('profile persistence', () => {

@@ -6,6 +6,7 @@
  */
 import { clampStat } from '../util/clamp';
 import { clampMoney } from '../util/money';
+import { TUNING } from '../config/tuning';
 import { pushLog } from '../state/mutations';
 import { netWorth } from './selectors';
 import { stepDeath } from './steps/death';
@@ -47,6 +48,36 @@ function evaluateGoal(s: GameState): void {
   }
 }
 
+/**
+ * Bankruptcy: cash below zero for consecutive weeks. The first negative week
+ * fires a blocking warning; if cash is still negative the next week, the run ends.
+ */
+function evaluateBankruptcy(s: GameState): void {
+  if (s.status !== 'alive') return;
+
+  if (s.money.cash < 0) {
+    const wasInDebt = s.money.weeksInDebt > 0;
+    s.money.weeksInDebt += 1;
+
+    if (s.money.weeksInDebt >= TUNING.BANKRUPTCY_GRACE_WEEKS) {
+      s.status = 'bankrupt';
+      s.pendingBankruptcyWarning = false;
+      pushLog(s, 'death', '💸 Bankrupt — the debts came due and there was nothing left.');
+    } else if (!wasInDebt) {
+      // First week in the red — warn the player, once per debt spell.
+      s.pendingBankruptcyWarning = true;
+      pushLog(
+        s,
+        'money',
+        '⚠️ Your balance is severely low. Get back in the black by next week or you go bankrupt.',
+      );
+    }
+  } else {
+    s.money.weeksInDebt = 0;
+    s.pendingBankruptcyWarning = false;
+  }
+}
+
 export function finalize(s: GameState): void {
   // Clamp (helpers already clamp, but settle any direct writes).
   s.stats.health = clampStat(s.stats.health);
@@ -55,6 +86,7 @@ export function finalize(s: GameState): void {
   s.money.bank = clampMoney(s.money.bank);
 
   stepDeath(s);
+  evaluateBankruptcy(s);
 
   s.progress.peakNet = Math.max(s.progress.peakNet, netWorth(s));
 

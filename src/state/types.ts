@@ -84,7 +84,7 @@ export type Requirement =
 
 // ── Sub-types of a run ────────────────────────────────────────────────────────
 
-export type RunStatus = 'alive' | 'dead' | 'breakdown';
+export type RunStatus = 'alive' | 'dead' | 'breakdown' | 'bankrupt';
 
 /** How the player is housed. Models the "live in an owned property" rule cleanly. */
 export type ResidenceRef =
@@ -172,6 +172,7 @@ export interface GameState {
     bank: number;
     bankInterestEarned: number;
     lifetimeEarned: number;
+    weeksInDebt: number; // consecutive weeks with negative cash (bankruptcy counter)
   };
   banking: {
     autoDepositPct: number;
@@ -210,6 +211,7 @@ export interface GameState {
   log: LogEntry[]; // capped ring buffer (TUNING.LOG_CAP)
   pendingEvent: PendingEvent | null;
   pendingGoal: PendingGoal | null;
+  pendingBankruptcyWarning: boolean; // first week in debt — a blocking warning
   status: RunStatus;
 }
 

@@ -46,15 +46,20 @@ export function EventModal() {
   );
 }
 
+const END_TITLE: Record<string, string> = {
+  dead: '💀 Your body gave out',
+  breakdown: '🕯️ Your mind gave out',
+  bankrupt: '💸 Bankrupt',
+};
+
 export function DeathModal() {
   const game = useGameStore((s) => s.game)!;
   const endRunToMenu = useGameStore((s) => s.endRunToMenu);
   if (game.status === 'alive') return null;
 
-  const dead = game.status === 'dead';
   return (
     <Modal>
-      <h2>{dead ? '💀 Your body gave out' : '🕯️ Your mind gave out'}</h2>
+      <h2>{END_TITLE[game.status] ?? 'This life has ended'}</h2>
       <p>
         This life has ended at age {ageYears(game)}. Peak net worth {moneyShort(game.progress.peakNet)};
         {game.elixir.count} Elixir{game.elixir.count === 1 ? '' : 's'} drunk. Perks and achievements
@@ -69,12 +74,33 @@ export function DeathModal() {
   );
 }
 
+export function BankruptcyWarningModal() {
+  const game = useGameStore((s) => s.game)!;
+  const ackWarning = useGameStore((s) => s.ackWarning);
+  if (!game.pendingBankruptcyWarning) return null;
+  return (
+    <Modal>
+      <h2>⚠️ Balance severely low</h2>
+      <p>
+        Your cash has gone negative ({moneyShort(game.money.cash)}). Get back into the black by the end
+        of next week — earn or withdraw from the bank — or the run ends in bankruptcy.
+      </p>
+      <div className="modal-actions">
+        <Button variant="primary" onClick={ackWarning}>
+          I’ll fix it
+        </Button>
+      </div>
+    </Modal>
+  );
+}
+
 export function Modals() {
   const game = useGameStore((s) => s.game);
   if (!game) return null;
-  // Death takes precedence, then goal, then event.
+  // End-of-run takes precedence, then goal, event, then the bankruptcy warning.
   if (game.status !== 'alive') return <DeathModal />;
   if (game.pendingGoal) return <GoalModal />;
   if (game.pendingEvent) return <EventModal />;
+  if (game.pendingBankruptcyWarning) return <BankruptcyWarningModal />;
   return null;
 }

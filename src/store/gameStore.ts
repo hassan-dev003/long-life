@@ -19,6 +19,7 @@ import {
   toggleSubscription,
   resolveEvent,
   acknowledgeGoal,
+  acknowledgeWarning,
 } from '../engine/instant';
 import type { Action } from '../engine/actions';
 import { ageYears } from '../engine/selectors';
@@ -63,6 +64,7 @@ interface GameStore {
   toggleSub: (subId: string) => void;
   chooseEvent: (choiceId: string) => void;
   ackGoal: () => void;
+  ackWarning: () => void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => {
@@ -205,6 +207,12 @@ export const useGameStore = create<GameStore>((set, get) => {
         }
       }
       commit(acked);
+    },
+
+    ackWarning() {
+      const game = get().game;
+      if (!game) return;
+      commit(acknowledgeWarning(game));
     },
   };
 });

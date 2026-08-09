@@ -24,7 +24,17 @@ function storage(): Storage | null {
 // Ordered upgrades keyed by the version they migrate *from*. v1 is current, so the
 // map is empty; each future schema bump adds a step and never silently drops a save.
 type Migration = (save: Record<string, unknown>) => Record<string, unknown>;
-const RUN_MIGRATIONS: Record<number, Migration> = {};
+const RUN_MIGRATIONS: Record<number, Migration> = {
+  // v1 → v2: add the bankruptcy fields (debt counter + pending warning).
+  1: (save) => {
+    const money = save.money as Record<string, unknown> | undefined;
+    if (money && money.weeksInDebt === undefined) money.weeksInDebt = 0;
+    if (save.pendingBankruptcyWarning === undefined) save.pendingBankruptcyWarning = false;
+    const meta = save.meta as Record<string, unknown> | undefined;
+    if (meta) meta.schemaVersion = 2;
+    return save;
+  },
+};
 
 function migrateRun(raw: Record<string, unknown>): GameState | null {
   let save = raw;

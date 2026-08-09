@@ -84,7 +84,7 @@ export function LifeTab() {
       <div className="grid">
         {SUBSCRIPTIONS.map((sub) => {
           const active = game.lifestyle.subscriptions.includes(sub.id);
-          const canAfford = active || game.money.cash >= sub.cost;
+          const canAfford = active || sub.cost === 0 || game.money.cash >= sub.cost;
           return (
             <Card
               key={sub.id}
