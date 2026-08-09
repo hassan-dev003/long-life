@@ -129,7 +129,6 @@ describe('golden run — a full life, deterministically', () => {
           "first-job",
           "graduate",
           "six-figures",
-          "zen",
         ],
         "age": 27,
         "credentials": [
@@ -140,8 +139,8 @@ describe('golden run — a full life, deterministically', () => {
         "elixirCount": 1,
         "happiness": 34,
         "health": 0,
-        "netWorth": 755480,
-        "peakNet": 943000,
+        "netWorth": 747480,
+        "peakNet": 927720,
         "role": null,
         "status": "dead",
         "totalWeeks": 474,

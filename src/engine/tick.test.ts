@@ -52,9 +52,11 @@ describe('tick — core loop', () => {
     s.education.credentials.push('diploma');
     s = enroll(s, 'degree', 'cs').state;
     expect(s.education.enrolled?.weeks).toBe(96);
-    // Study to completion, resolving any choice event that pauses the week.
-    for (let i = 0; i < 400 && s.education.enrolled && s.status === 'alive'; i++) {
-      s = s.pendingEvent ? resolveEvent(s, event0Choice(s)) : tick(s, study());
+    // Study to completion, resting when run down and resolving any choice event.
+    for (let i = 0; i < 600 && s.education.enrolled && s.status === 'alive'; i++) {
+      if (s.pendingEvent) s = resolveEvent(s, event0Choice(s));
+      else if (s.stats.happiness < 30 || s.stats.health < 30) s = tick(s, activity('rest'));
+      else s = tick(s, study());
     }
     expect(s.education.credentials).toContain('degree:cs');
     expect(s.education.enrolled).toBeNull();
