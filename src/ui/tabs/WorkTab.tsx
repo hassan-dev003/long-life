@@ -4,6 +4,7 @@ import { meets } from '../../engine/eligibility';
 import { currentRole, nextPromotion } from '../../engine/selectors';
 import { ENTRY_JOBS, TECH } from '../../content/careers';
 import { moneyShort } from '../../util/money';
+import { fmt1 } from '../../util/format';
 import { Button, Card, Tag } from '../components';
 import type { RoleDef } from '../../content/careers';
 
@@ -28,7 +29,7 @@ export function WorkTab() {
         tags={
           <>
             <Tag tone="pos">{moneyShort(r.salaryPerWeek)}/wk</Tag>
-            <Tag tone="neg">−{r.stress.h + r.stress.hp} stress</Tag>
+            <Tag tone="neg">−{fmt1(r.stress.h + r.stress.hp)} stress/wk</Tag>
           </>
         }
       >

@@ -34,7 +34,7 @@ import {
 import { SCENARIO_BY_ID } from '../content/scenarios';
 import type { GameState, Major, PerkId, Profile } from '../state/types';
 
-export type TabId = 'live' | 'work' | 'learn' | 'bank' | 'life';
+export type TabId = 'live' | 'work' | 'learn' | 'bank' | 'lifestyle' | 'legacy';
 
 interface GameStore {
   game: GameState | null;

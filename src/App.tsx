@@ -14,13 +14,15 @@ import { WorkTab } from './ui/tabs/WorkTab';
 import { LearnTab } from './ui/tabs/LearnTab';
 import { BankTab } from './ui/tabs/BankTab';
 import { LifeTab } from './ui/tabs/LifeTab';
+import { LegacyTab } from './ui/tabs/LegacyTab';
 
 const NAV: { id: TabId; label: string; icon: string }[] = [
   { id: 'live', label: 'Live', icon: '🌱' },
   { id: 'work', label: 'Work', icon: '💼' },
   { id: 'learn', label: 'Learn', icon: '🎓' },
   { id: 'bank', label: 'Bank', icon: '🏦' },
-  { id: 'life', label: 'Life', icon: '✦' },
+  { id: 'lifestyle', label: 'Lifestyle', icon: '🛋️' },
+  { id: 'legacy', label: 'Legacy', icon: '🏆' },
 ];
 
 function Clock() {
@@ -97,8 +99,10 @@ function TabContent() {
       return <LearnTab />;
     case 'bank':
       return <BankTab />;
-    case 'life':
+    case 'lifestyle':
       return <LifeTab />;
+    case 'legacy':
+      return <LegacyTab />;
   }
 }
 
