@@ -24,6 +24,10 @@ end-to-end in the browser, saves survive a refresh, and a seeded golden-run test
 CI. An earlier single-file React prototype proved the core loop; this is the ground-up, structured
 rebuild.
 
+🟡 **M2 (economy depth) is underway.** On top of the M1 slice: all nine unique-gated career ladders,
+the full business system (Team-Morale model), the Food/Clothes lifestyle split, and the auxiliary
+education tracks are now built and green in CI. Markets & property (M3) come next.
+
 **What's in M1:** the pure `tick(state, action)` engine + seeded RNG, versioned localStorage saves,
 Health/Happiness with age-driven decay, **death, breakdown & bankruptcy** rules, the Elixir, the
 education spine (with majors), the unique-gated **Tech** career ladder + entry jobs (backed by a
@@ -69,7 +73,10 @@ saves. See the Technical Architecture doc.
 - **M1 — Playable vertical slice ✅ built:** pure tick engine + save/load + Health/Happiness + death rules
   + Elixir + education spine + one career ladder + leisure + bank + a small event set + the Normal Life
   scenario. *A full life playable end-to-end, deterministic golden-run test in CI.*
-- **M2 — Economy depth:** all majors & career ladders, businesses, split lifestyle, auxiliary education.
+- **M2 — Economy depth (in progress):** all majors & **all nine career ladders**, the **business
+  system** (Team-Morale model, loss→profit lifecycle), **split lifestyle** (Food/Clothes), and
+  **auxiliary education** (med school, bar, academies, trade). *Life Courses move to M4 with the full
+  skills/traits system they depend on.*
 - **M3 — Markets & property:** market tabs, parody tickers, hidden volatility, news feed, real estate.
 - **M4 — Life texture:** relationships/family, skills/traits, life courses, deep health.
 - **M5 — Meta:** full scenario/goal/perk catalog, achievements, philanthropy, balance pass.

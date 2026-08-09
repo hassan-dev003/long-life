@@ -465,9 +465,9 @@ fundWork(work):
 |---|---|
 | Tick reducer, save/load, stats, death rules, **Elixir** (turn-based, no time-skip) | **M1** |
 | Money scale + `moneyShort` (k/M/B/T, $999,999,999,999,999 cap); Education spine + majors; Tech ladder + entry jobs; Bank; leisure; Home + basic subs; light events; Normal Life scenario; goal/perk framework | **M1** |
-| All majors + all career ladders; Businesses (morale model); Food/Clothes; auxiliaries; Life Courses | **M2** |
+| All majors + all career ladders; Businesses (morale model); Food/Clothes; auxiliaries | **M2** |
 | Market (parody tickers, hidden volatility, tone-scaled news) + real-estate rent/flip/live-in | **M3** |
-| Relationships/family; skills/traits; deep health | **M4** |
+| Relationships/family; skills/traits; **Life Courses**; deep health | **M4** |
 | Full scenario/goal/perk catalog; achievements; **Philanthropy (seven great works)**; balance pass | **M5** |
 | Business IPO + insider trading | **Roadmap** |
 
