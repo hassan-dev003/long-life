@@ -227,8 +227,11 @@ Restrained but present — momentum is the genre's heartbeat.
   heavy icon dependency.
 - **Fonts:** `Inter` + `JetBrains Mono` self-hosted or system fallbacks; never block first paint on a
   font CDN (a prototype smell — it injected a Google Fonts link at runtime).
-- This doc defines the *system*; per-tab pixel layouts are built against it during each milestone, starting
-  with the **M1** shell (top bar, nav, Live/Work/Learn/Bank/Assets tabs, log, modals).
+- This doc defines the *system*; per-tab pixel layouts are built against it during each milestone. The
+  **M1** shell as built: top bar (clock, hero net worth, stat meters, **New Life** reset), nav rail →
+  bottom bar, **Live / Work / Learn / Bank / Finances / Lifestyle / Legacy** tabs, life log, and the
+  blocking modals (event choice, goal celebration, bankruptcy warning, death). Market/Assets/Giving land
+  in later milestones.
 
 ---
 

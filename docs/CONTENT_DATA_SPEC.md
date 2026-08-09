@@ -495,7 +495,7 @@ career-gate achievements referenced by ladders (`shipped-a-feature`, `owned-a-sy
 export const TUNING = {
   WEEKS_PER_YEAR: 48,
   AGE_DECAY_RATE: 0.02, BASE_H_DECAY: 0.10, BASE_HP_DECAY: 0.40, CROSS_PENALTY: 0.30,
-  DEATH_GRACE_WEEKS: 3,
+  DEATH_GRACE_WEEKS: 3, BANKRUPTCY_GRACE_WEEKS: 2,   // negative cash: warn at wk 1, bankrupt at wk 2 (GDD §1.3)
   MONEY_CAP: 999_999_999_999_999,
   BANK_TIERS: [ [1_000_000, 0.0022], [100_000, 0.0018], [10_000, 0.0015], [0, 0.0012] ],
   WEEKLY_EVENT_CHANCE: 0.15,

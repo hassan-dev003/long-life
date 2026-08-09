@@ -25,10 +25,13 @@ CI. An earlier single-file React prototype proved the core loop; this is the gro
 rebuild.
 
 **What's in M1:** the pure `tick(state, action)` engine + seeded RNG, versioned localStorage saves,
-Health/Happiness with age-driven decay, death & breakdown rules, the Elixir, the education spine (with
-majors), the unique-gated **Tech** career ladder + entry jobs, leisure, the bank, home/food/subscription
-lifestyle, a small event set (outcome + choice), and the **Normal Life** scenario — all wired to a
-dark-first, green-accented UI.
+Health/Happiness with age-driven decay, **death, breakdown & bankruptcy** rules, the Elixir, the
+education spine (with majors), the unique-gated **Tech** career ladder + entry jobs (backed by a
+lightweight skills slice), leisure, the bank with an **auto-deposit** slider, home/food/subscription
+lifestyle, a small event set (outcome + choice), and the **Normal Life** scenario. Purchases are gated on
+**cash-in-hand** (the bank is a separate vault you withdraw from). All wired to a dark-first,
+green-accented UI: a **Live** hub, **Work / Learn / Bank / Finances / Lifestyle / Legacy** tabs, blocking
+modals (event choice, goal celebration, bankruptcy warning, death), and a **New Life** reset.
 
 ## The design bible
 
