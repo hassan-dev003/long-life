@@ -73,7 +73,11 @@ export const SPINE: EducationProgram[] = [
   },
 ];
 
-/** Off-spine auxiliaries relevant to M1's Tech slice (others fill in during M2). */
+/**
+ * Off-spine auxiliaries (CONTENT_DATA_SPEC §3.1) — credentials that gate specific
+ * professional fields/jobs without sitting on the degree ladder. `med-school` and
+ * `bar` branch off a matching major; the academies and trade cert need only school.
+ */
 export const AUXILIARIES: EducationProgram[] = [
   {
     id: 'community-college',
@@ -81,6 +85,41 @@ export const AUXILIARIES: EducationProgram[] = [
     weeks: 32,
     cost: 12_000,
     req: { kind: 'credential', id: 'school' },
+  },
+  {
+    id: 'cert:trade',
+    name: 'Trade Certificate',
+    weeks: 16,
+    cost: 5_000,
+    req: { kind: 'credential', id: 'school' },
+  },
+  {
+    id: 'police-academy',
+    name: 'Police Academy',
+    weeks: 24,
+    cost: 8_000,
+    req: { kind: 'credential', id: 'school' },
+  },
+  {
+    id: 'military-academy',
+    name: 'Military Academy',
+    weeks: 48,
+    cost: 0,
+    req: { kind: 'credential', id: 'school' },
+  },
+  {
+    id: 'med-school',
+    name: 'Medical School',
+    weeks: 60,
+    cost: 300_000,
+    req: { kind: 'credential', id: 'degree:medicine' },
+  },
+  {
+    id: 'bar',
+    name: 'Bar Exam Prep',
+    weeks: 16,
+    cost: 20_000,
+    req: { kind: 'credential', id: 'degree:law' },
   },
 ];
 
