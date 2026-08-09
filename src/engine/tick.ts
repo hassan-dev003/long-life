@@ -1,8 +1,8 @@
 /**
  * The authoritative reducer: tick(state, action) → state. Pure — it clones the
- * state once and threads that draft through the M1 subset of the 13-step order
- * (GDD §2: steps 1–3, 5–8, 10–13; no market/rent/business yet), threading the RNG
- * through state.meta.rngState. One action advances exactly one week.
+ * state once and threads that draft through the 13-step order (GDD §2: steps 1–3,
+ * 5–13; no market/rent step 4 until M3), threading the RNG through
+ * state.meta.rngState. One action advances exactly one week.
  *
  * If the event roll opens a *choice*, the tick pauses before finalization: it
  * returns with `pendingEvent` set and the week's settlement (clamp, death check,
@@ -12,6 +12,7 @@ import { Rng } from './rng';
 import { computeRunMods } from './economy';
 import { finalize } from './finalize';
 import { stepInterest } from './steps/interest';
+import { stepBusiness } from './steps/business';
 import { stepIncome } from './steps/income';
 import { stepUpkeep } from './steps/upkeep';
 import { stepDecay } from './steps/decay';
@@ -37,7 +38,7 @@ export function tick(state: GameState, action: Action): GameState {
 
   s.clock.totalWeeks += 1; // 1
   stepInterest(s); // 2
-  // 3 (business) — none in M1
+  stepBusiness(s, ctx); // 3  per-business net, growth, morale, attrition
   stepIncome(s, ctx); // 5
   stepUpkeep(s, ctx); // 6
   stepDecay(s, ctx); // 7–8a  passives + decay

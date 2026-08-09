@@ -42,10 +42,15 @@ export const TUNING = {
   // Severity bucket weights, biased toward minor (minor common, major rare, catastrophic very rare).
   SEVERITY_WEIGHTS: { minor: 0.8, major: 0.18, catastrophic: 0.02 } as const,
 
-  // Business (M2 — present for completeness)
-  GROWTH_BASE: 1.5,
-  MORALE_LERP: 0.08,
-  ATTRITION_FLOOR: 25,
+  // Business (GDD §7) — the Team-Morale model
+  GROWTH_BASE: 1.5, // base weekly growth drive at full morale + competence
+  MORALE_LERP: 0.08, // how fast morale (and reputation/inventory) chase their target
+  ATTRITION_FLOOR: 25, // morale below this risks staff quitting + stalls growth
+  BIZ_GROWTH_START: 5, // a new business opens near zero maturity
+  BIZ_MORALE_START: 50, // …and at neutral morale
+  BIZ_NEGLECT_DECAY: 0.5, // growth lost per week while morale is below the floor
+  BIZ_TECHDEBT_ACCRUAL: 0.6, // tech debt added per point of growth gained (fast growth → more debt)
+  BIZ_TECHDEBT_PAYDOWN: 0.3, // tech debt naturally worked down per week (wins once mature)
 
   // Elixir (GDD §12)
   ELIXIR_BASE_PRICE: 5_000_000,

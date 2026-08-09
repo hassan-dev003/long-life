@@ -17,7 +17,10 @@ import { ALL_PROGRAMS, type EducationProgram } from '../content/education';
 import { ROLE_BY_ID } from '../content/careers';
 import { EVENT_BY_ID } from '../content/events';
 import { CLOTHES_TIER_BY_ID, SUBSCRIPTION_BY_ID } from '../content/lifestyle';
-import type { CredentialId, GameState, Major, Requirement } from '../state/types';
+import { BUSINESS_BY_ID, startingFieldStat } from '../content/businesses';
+import { defOf, valuation } from './business';
+import { addCash } from '../state/mutations';
+import type { BusinessInstance, CredentialId, GameState, Major, Requirement } from '../state/types';
 
 const clone = (s: GameState): GameState => structuredClone(s);
 
@@ -222,6 +225,101 @@ export function toggleSubscription(state: GameState, subId: string): GameState {
     s.lifestyle.subscriptions.push(subId);
     pushLog(s, 'info', `Subscribed to ${sub.name}${sub.cost ? ` (−${moneyShort(sub.cost)})` : ''}.`);
   }
+  return s;
+}
+
+// ── Business (GDD §7) ───────────────────────────────────────────────────────────
+
+const findBiz = (s: GameState, bizId: string): BusinessInstance | undefined =>
+  s.businesses.find((b) => b.id === bizId);
+
+/** Open a business: pay its upfront cost from cash, then it starts near-zero maturity. */
+export function buyBusiness(state: GameState, defId: string): GameState {
+  const def = BUSINESS_BY_ID[defId];
+  if (!def) return state;
+  if (!meets(state, def.req).ok) return state;
+  if (!affordable(state, def.cost)) return state;
+
+  const s = clone(state);
+  pay(s, def.cost);
+  s.businesses.push({
+    id: `${defId}-${s.clock.totalWeeks}-${s.businesses.length}`,
+    defId,
+    field: def.field,
+    tier: def.tier,
+    growth: TUNING.BIZ_GROWTH_START,
+    morale: TUNING.BIZ_MORALE_START,
+    staff: 0,
+    branches: 0,
+    wagePerStaff: def.marketWage,
+    profitSharePct: 0,
+    fieldStatValue: startingFieldStat(def.fieldStat),
+  });
+  pushLog(s, 'career', `Opened ${def.name} (−${moneyShort(def.cost)}).`);
+  return s;
+}
+
+/** Hire one more worker (up to the tier's cap) — raises capacity and payroll. */
+export function hireStaff(state: GameState, bizId: string): GameState {
+  const b = findBiz(state, bizId);
+  const def = b && defOf(b);
+  if (!b || !def || b.staff >= def.staffCap) return state;
+  const s = clone(state);
+  findBiz(s, bizId)!.staff += 1;
+  return s;
+}
+
+/** Lay off one worker. */
+export function layoffStaff(state: GameState, bizId: string): GameState {
+  const b = findBiz(state, bizId);
+  if (!b || b.staff <= 0) return state;
+  const s = clone(state);
+  findBiz(s, bizId)!.staff -= 1;
+  return s;
+}
+
+/** Open a branch (up to the tier's cap): an upfront capital cost, then weekly upkeep. */
+export function openBranch(state: GameState, bizId: string): GameState {
+  const b = findBiz(state, bizId);
+  const def = b && defOf(b);
+  if (!b || !def || b.branches >= def.branchCap) return state;
+  const openCost = Math.round(def.cost * 0.3);
+  if (!affordable(state, openCost)) return state;
+  const s = clone(state);
+  pay(s, openCost);
+  findBiz(s, bizId)!.branches += 1;
+  pushLog(s, 'career', `Opened a new branch of ${def.name} (−${moneyShort(openCost)}).`);
+  return s;
+}
+
+/** Set the per-staff weekly wage (drives Team Morale vs. the market wage). */
+export function setBusinessWage(state: GameState, bizId: string, wage: number): GameState {
+  const b = findBiz(state, bizId);
+  if (!b) return state;
+  const s = clone(state);
+  findBiz(s, bizId)!.wagePerStaff = Math.max(0, Math.round(wage));
+  return s;
+}
+
+/** Set the profit-share fraction (0..1) paid to the team (raises the morale target). */
+export function setBusinessProfitShare(state: GameState, bizId: string, pct: number): GameState {
+  const b = findBiz(state, bizId);
+  if (!b) return state;
+  const s = clone(state);
+  findBiz(s, bizId)!.profitSharePct = Math.max(0, Math.min(1, pct));
+  return s;
+}
+
+/** Sell a business for its current valuation (maturity + morale scaled). */
+export function sellBusiness(state: GameState, bizId: string): GameState {
+  const b = findBiz(state, bizId);
+  const def = b && defOf(b);
+  if (!b || !def) return state;
+  const s = clone(state);
+  const value = valuation(b, def);
+  s.businesses = s.businesses.filter((x) => x.id !== bizId);
+  addCash(s, value);
+  pushLog(s, 'money', `Sold ${def.name} for ${moneyShort(value)}.`);
   return s;
 }
 

@@ -7,6 +7,7 @@ import { clampMoney } from '../util/money';
 import { ROLE_BY_ID, ladderOfRole, type RoleDef } from '../content/careers';
 import { meets, type MeetsResult } from './eligibility';
 import { computeRunMods, weeklyInterest, weeklyUpkeep, type UpkeepBreakdown } from './economy';
+import { defOf, valuation } from './business';
 import type { GameState } from '../state/types';
 
 const MONTH_ABBR = [
@@ -43,9 +44,19 @@ export function clockDisplay(s: GameState): { age: number; month: string; week: 
   return { age: ageYears(s), month: MONTH_ABBR[monthOfYear(s) - 1]!, week: weekOfMonth(s) };
 }
 
-/** Net worth = liquid + illiquid asset value. M1: cash + bank (businesses/property later). */
+/** Total resale value of all owned businesses (0 if none). */
+export function businessesValue(s: GameState): number {
+  let total = 0;
+  for (const b of s.businesses) {
+    const def = defOf(b);
+    if (def) total += valuation(b, def);
+  }
+  return total;
+}
+
+/** Net worth = liquid + illiquid asset value: cash + bank + businesses (property in M3). */
 export function netWorth(s: GameState): number {
-  return clampMoney(s.money.cash + s.money.bank);
+  return clampMoney(s.money.cash + s.money.bank + businessesValue(s));
 }
 
 export function currentRole(s: GameState): RoleDef | null {

@@ -196,6 +196,34 @@
   margin: 22px 0 10px;
 }
 
+/* ── Business controls ─────────────────────────────────────────────────────── */
+.biz-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+}
+.biz-bar-label {
+  font-size: 11px;
+  color: var(--text-secondary);
+  min-width: 116px;
+  white-space: nowrap;
+}
+.biz-bar .progress {
+  flex: 1;
+}
+.biz-control {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.biz-control > span:first-child {
+  flex: 1;
+}
+
 /* ── Cards & grid ──────────────────────────────────────────────────────────── */
 .grid {
   display: grid;

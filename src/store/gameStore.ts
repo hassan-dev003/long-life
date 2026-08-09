@@ -18,6 +18,13 @@ import {
   setFood,
   setClothes,
   toggleSubscription,
+  buyBusiness,
+  hireStaff,
+  layoffStaff,
+  openBranch,
+  setBusinessWage,
+  setBusinessProfitShare,
+  sellBusiness,
   resolveEvent,
   acknowledgeGoal,
   acknowledgeWarning,
@@ -36,7 +43,15 @@ import {
 import { SCENARIO_BY_ID } from '../content/scenarios';
 import type { GameState, Major, PerkId, Profile } from '../state/types';
 
-export type TabId = 'live' | 'work' | 'learn' | 'bank' | 'finances' | 'lifestyle' | 'legacy';
+export type TabId =
+  | 'live'
+  | 'work'
+  | 'learn'
+  | 'business'
+  | 'bank'
+  | 'finances'
+  | 'lifestyle'
+  | 'legacy';
 
 interface GameStore {
   game: GameState | null;
@@ -64,6 +79,13 @@ interface GameStore {
   chooseFood: (foodId: string) => void;
   chooseClothes: (clothesId: string) => void;
   toggleSub: (subId: string) => void;
+  openBusiness: (defId: string) => void;
+  hireBiz: (bizId: string) => void;
+  layoffBiz: (bizId: string) => void;
+  openBizBranch: (bizId: string) => void;
+  setBizWage: (bizId: string, wage: number) => void;
+  setBizShare: (bizId: string, pct: number) => void;
+  sellBiz: (bizId: string) => void;
   chooseEvent: (choiceId: string) => void;
   ackGoal: () => void;
   ackWarning: () => void;
@@ -189,6 +211,48 @@ export const useGameStore = create<GameStore>((set, get) => {
       const game = get().game;
       if (!game) return;
       commit(toggleSubscription(game, subId));
+    },
+
+    openBusiness(defId) {
+      const game = get().game;
+      if (!game) return;
+      commit(buyBusiness(game, defId));
+    },
+
+    hireBiz(bizId) {
+      const game = get().game;
+      if (!game) return;
+      commit(hireStaff(game, bizId));
+    },
+
+    layoffBiz(bizId) {
+      const game = get().game;
+      if (!game) return;
+      commit(layoffStaff(game, bizId));
+    },
+
+    openBizBranch(bizId) {
+      const game = get().game;
+      if (!game) return;
+      commit(openBranch(game, bizId));
+    },
+
+    setBizWage(bizId, wage) {
+      const game = get().game;
+      if (!game) return;
+      commit(setBusinessWage(game, bizId, wage));
+    },
+
+    setBizShare(bizId, pct) {
+      const game = get().game;
+      if (!game) return;
+      commit(setBusinessProfitShare(game, bizId, pct));
+    },
+
+    sellBiz(bizId) {
+      const game = get().game;
+      if (!game) return;
+      commit(sellBusiness(game, bizId));
     },
 
     chooseEvent(choiceId) {

@@ -7,6 +7,7 @@
  * first unmet requirement, for the "what's blocking this" UI.
  */
 import { netWorth } from './selectors';
+import { hasProfitableBusiness } from './business';
 import { SKILLS } from '../content/skills';
 import { TRAITS } from '../content/skills';
 import { ROLE_BY_ID } from '../content/careers';
@@ -71,13 +72,10 @@ export function meets(state: GameState, req?: Requirement): MeetsResult {
         ? OK
         : { ok: false, reason: `Requires the achievement "${req.id}"` };
 
-    case 'businessProfit': {
-      const ok = state.businesses.some(
-        (b) => (!req.field || b.field === req.field) && b.growth > 0 && b.morale > 0,
-      );
-      // M1 has no businesses; this gate is only satisfiable later.
-      return ok ? OK : { ok: false, reason: 'Requires a profitable business' };
-    }
+    case 'businessProfit':
+      return hasProfitableBusiness(state, req.field)
+        ? OK
+        : { ok: false, reason: 'Requires a business turning a profit' };
 
     case 'netWorth':
       return netWorth(state) >= req.min

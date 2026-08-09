@@ -13,6 +13,7 @@ import { Modals } from './ui/Modals';
 import { LiveTab } from './ui/tabs/LiveTab';
 import { WorkTab } from './ui/tabs/WorkTab';
 import { LearnTab } from './ui/tabs/LearnTab';
+import { BusinessTab } from './ui/tabs/BusinessTab';
 import { BankTab } from './ui/tabs/BankTab';
 import { FinancesTab } from './ui/tabs/FinancesTab';
 import { LifeTab } from './ui/tabs/LifeTab';
@@ -22,6 +23,7 @@ const NAV: { id: TabId; label: string; icon: string }[] = [
   { id: 'live', label: 'Live', icon: '🌱' },
   { id: 'work', label: 'Work', icon: '💼' },
   { id: 'learn', label: 'Learn', icon: '🎓' },
+  { id: 'business', label: 'Business', icon: '🏪' },
   { id: 'bank', label: 'Bank', icon: '🏦' },
   { id: 'finances', label: 'Finances', icon: '📊' },
   { id: 'lifestyle', label: 'Lifestyle', icon: '🛋️' },
@@ -134,6 +136,8 @@ function TabContent() {
       return <WorkTab />;
     case 'learn':
       return <LearnTab />;
+    case 'business':
+      return <BusinessTab />;
     case 'bank':
       return <BankTab />;
     case 'finances':
