@@ -16,6 +16,7 @@ import {
   buyElixir,
   setResidenceTier,
   setFood,
+  setClothes,
   toggleSubscription,
   resolveEvent,
   acknowledgeGoal,
@@ -61,6 +62,7 @@ interface GameStore {
   purchaseElixir: () => void;
   chooseResidence: (tier: string) => void;
   chooseFood: (foodId: string) => void;
+  chooseClothes: (clothesId: string) => void;
   toggleSub: (subId: string) => void;
   chooseEvent: (choiceId: string) => void;
   ackGoal: () => void;
@@ -175,6 +177,12 @@ export const useGameStore = create<GameStore>((set, get) => {
       const game = get().game;
       if (!game) return;
       commit(setFood(game, foodId));
+    },
+
+    chooseClothes(clothesId) {
+      const game = get().game;
+      if (!game) return;
+      commit(setClothes(game, clothesId));
     },
 
     toggleSub(subId) {

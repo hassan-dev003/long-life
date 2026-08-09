@@ -5,7 +5,12 @@
 import { TUNING } from '../config/tuning';
 import { buildRunConfig } from '../content/perks';
 import { TRAITS } from '../content/skills';
-import { HOME_TIER_BY_ID, FOOD_TIER_BY_ID, SUBSCRIPTION_BY_ID } from '../content/lifestyle';
+import {
+  HOME_TIER_BY_ID,
+  FOOD_TIER_BY_ID,
+  CLOTHES_TIER_BY_ID,
+  SUBSCRIPTION_BY_ID,
+} from '../content/lifestyle';
 import type { GameState } from '../state/types';
 
 /** Weekly compound interest rate for a bank balance (tiered; highest threshold first). */
@@ -24,6 +29,7 @@ export function weeklyInterest(bank: number): number {
 export interface UpkeepBreakdown {
   residence: number;
   food: number;
+  clothes: number;
   subscriptions: number;
   total: number; // price-modified, rounded — matches what the tick actually bills
 }
@@ -36,12 +42,15 @@ export function weeklyUpkeep(s: GameState, priceMod: number): UpkeepBreakdown {
       ? (HOME_TIER_BY_ID[s.lifestyle.residence.tier]?.upkeepPerWeek ?? 0)
       : 0;
   const food = FOOD_TIER_BY_ID[s.lifestyle.food]?.costPerWeek ?? 0;
+  const clothes = s.lifestyle.clothes
+    ? (CLOTHES_TIER_BY_ID[s.lifestyle.clothes]?.upkeepPerWeek ?? 0)
+    : 0;
   let subscriptions = 0;
   for (const subId of s.lifestyle.subscriptions) {
     subscriptions += SUBSCRIPTION_BY_ID[subId]?.upkeepPerWeek ?? 0;
   }
-  const total = Math.round((residence + food + subscriptions) * priceMod);
-  return { residence, food, subscriptions, total };
+  const total = Math.round((residence + food + clothes + subscriptions) * priceMod);
+  return { residence, food, clothes, subscriptions, total };
 }
 
 /** The effective modifiers for a run, merging active perks, traits, and insurance. */

@@ -1,6 +1,6 @@
-/** Life — lifestyle spend: residence, food, and subscriptions. */
+/** Lifestyle — spend that shapes wellbeing: residence, food, clothes, subscriptions. */
 import { useGameStore } from '../../store/gameStore';
-import { HOME_TIERS, FOOD_TIERS, SUBSCRIPTIONS } from '../../content/lifestyle';
+import { HOME_TIERS, FOOD_TIERS, CLOTHES_TIERS, SUBSCRIPTIONS } from '../../content/lifestyle';
 import { moneyShort } from '../../util/money';
 import { Button, Card, Tag } from '../components';
 
@@ -8,6 +8,7 @@ export function LifeTab() {
   const game = useGameStore((s) => s.game)!;
   const chooseResidence = useGameStore((s) => s.chooseResidence);
   const chooseFood = useGameStore((s) => s.chooseFood);
+  const chooseClothes = useGameStore((s) => s.chooseClothes);
   const toggleSub = useGameStore((s) => s.toggleSub);
 
   const residenceTier =
@@ -15,12 +16,10 @@ export function LifeTab() {
 
   return (
     <div>
-      <h2 className="tab-title">Life</h2>
-      <p className="tab-sub">Where you live, what you eat, and what you subscribe to.</p>
+      <h2 className="tab-title">Lifestyle</h2>
+      <p className="tab-sub">Where you live, what you eat, how you dress, and what you subscribe to.</p>
 
-      <h2 className="tab-title" style={{ fontSize: 15 }}>
-        Home
-      </h2>
+      <h3 className="section-title">Home</h3>
       <div className="grid">
         {HOME_TIERS.map((h) => {
           const active = residenceTier === h.id;
@@ -48,9 +47,7 @@ export function LifeTab() {
         })}
       </div>
 
-      <h2 className="tab-title" style={{ fontSize: 15, marginTop: 20 }}>
-        Food
-      </h2>
+      <h3 className="section-title">Food</h3>
       <div className="grid">
         {FOOD_TIERS.map((f) => {
           const active = game.lifestyle.food === f.id;
@@ -78,9 +75,41 @@ export function LifeTab() {
         })}
       </div>
 
-      <h2 className="tab-title" style={{ fontSize: 15, marginTop: 20 }}>
-        Subscriptions
-      </h2>
+      <h3 className="section-title">Clothes</h3>
+      <div className="grid">
+        {CLOTHES_TIERS.map((c) => {
+          const active = game.lifestyle.clothes === c.id;
+          const canAfford = active || game.money.cash >= c.cost;
+          return (
+            <Card
+              key={c.id}
+              title={c.name}
+              owned={active}
+              badge={active ? <Tag tone="pos">wearing</Tag> : undefined}
+              tags={
+                <>
+                  <Tag tone="neg">{moneyShort(c.cost)}</Tag>
+                  <Tag tone="neg">{moneyShort(c.upkeepPerWeek)}/wk</Tag>
+                  {c.hp > 0 && <Tag>+{c.hp}☺</Tag>}
+                </>
+              }
+            >
+              {!active && (
+                <Button
+                  block
+                  disabled={!canAfford}
+                  title={!canAfford ? 'Not enough cash (withdraw from bank first)' : undefined}
+                  onClick={() => chooseClothes(c.id)}
+                >
+                  Buy
+                </Button>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+
+      <h3 className="section-title">Subscriptions</h3>
       <div className="grid">
         {SUBSCRIPTIONS.map((sub) => {
           const active = game.lifestyle.subscriptions.includes(sub.id);

@@ -54,6 +54,7 @@ export function FinancesTab() {
           </div>
           <Row label={`Home — ${residenceName}`} value={-fin.upkeep.residence} sign />
           <Row label="Food" value={-fin.upkeep.food} sign />
+          {fin.upkeep.clothes > 0 && <Row label="Clothes" value={-fin.upkeep.clothes} sign />}
           {game.lifestyle.subscriptions.length > 0 ? (
             game.lifestyle.subscriptions.map((id) => (
               <Row

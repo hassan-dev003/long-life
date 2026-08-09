@@ -19,6 +19,15 @@ export interface FoodTier {
   hp: number;
 }
 
+export interface ClothesTier {
+  id: string;
+  name: string;
+  cost: number; // one-time purchase from cash
+  upkeepPerWeek: number;
+  hp: number; // happiness/wk (social standing)
+  socialTier: number; // 0..4 — gates some social/relationship event outcomes (M4)
+}
+
 export interface Subscription {
   id: string;
   name: string;
@@ -54,6 +63,23 @@ export const FOOD_TIERS: FoodTier[] = [
 
 export const FOOD_TIER_BY_ID: Record<string, FoodTier> = Object.fromEntries(
   FOOD_TIERS.map((t) => [t.id, t]),
+);
+
+/**
+ * Wardrobe tiers (CONTENT_DATA_SPEC §7). Buying a tier is a one-time cash cost;
+ * it then carries a small weekly upkeep and a happiness passive. `socialTier`
+ * is authored now for the social/relationship event gating that lands in M4.
+ */
+export const CLOTHES_TIERS: ClothesTier[] = [
+  { id: 'thrift', name: 'Thrift Wardrobe', cost: 60, upkeepPerWeek: 2, hp: 0.1, socialTier: 0 },
+  { id: 'basic', name: 'Basic Wardrobe', cost: 300, upkeepPerWeek: 6, hp: 0.3, socialTier: 1 },
+  { id: 'smart', name: 'Smart Wardrobe', cost: 1_200, upkeepPerWeek: 15, hp: 0.6, socialTier: 2 },
+  { id: 'designer', name: 'Designer Wardrobe', cost: 8_000, upkeepPerWeek: 60, hp: 1.1, socialTier: 3 },
+  { id: 'couture', name: 'Couture Wardrobe', cost: 60_000, upkeepPerWeek: 300, hp: 1.8, socialTier: 4 },
+];
+
+export const CLOTHES_TIER_BY_ID: Record<string, ClothesTier> = Object.fromEntries(
+  CLOTHES_TIERS.map((t) => [t.id, t]),
 );
 
 export const SUBSCRIPTIONS: Subscription[] = [

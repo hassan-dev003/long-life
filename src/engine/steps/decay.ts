@@ -5,7 +5,12 @@
  */
 import { TUNING } from '../../config/tuning';
 import { addHealth, addHappy } from '../../state/mutations';
-import { HOME_TIER_BY_ID, FOOD_TIER_BY_ID, SUBSCRIPTION_BY_ID } from '../../content/lifestyle';
+import {
+  HOME_TIER_BY_ID,
+  FOOD_TIER_BY_ID,
+  CLOTHES_TIER_BY_ID,
+  SUBSCRIPTION_BY_ID,
+} from '../../content/lifestyle';
 import { ageYears } from '../selectors';
 import type { GameState } from '../../state/types';
 import type { TickCtx } from '../context';
@@ -28,6 +33,10 @@ export function stepDecay(s: GameState, ctx: TickCtx): void {
   if (food) {
     passiveH += food.h;
     passiveHp += food.hp;
+  }
+  if (s.lifestyle.clothes) {
+    const clothes = CLOTHES_TIER_BY_ID[s.lifestyle.clothes];
+    if (clothes) passiveHp += clothes.hp;
   }
   for (const subId of s.lifestyle.subscriptions) {
     const sub = SUBSCRIPTION_BY_ID[subId];

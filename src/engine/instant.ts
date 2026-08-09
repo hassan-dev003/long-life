@@ -16,7 +16,7 @@ import { moneyShort, clampMoney } from '../util/money';
 import { ALL_PROGRAMS, type EducationProgram } from '../content/education';
 import { ROLE_BY_ID } from '../content/careers';
 import { EVENT_BY_ID } from '../content/events';
-import { SUBSCRIPTION_BY_ID } from '../content/lifestyle';
+import { CLOTHES_TIER_BY_ID, SUBSCRIPTION_BY_ID } from '../content/lifestyle';
 import type { CredentialId, GameState, Major, Requirement } from '../state/types';
 
 const clone = (s: GameState): GameState => structuredClone(s);
@@ -188,6 +188,20 @@ export function setResidenceTier(state: GameState, tier: string): GameState {
 export function setFood(state: GameState, foodId: string): GameState {
   const s = clone(state);
   s.lifestyle.food = foodId;
+  return s;
+}
+
+/** Buy a wardrobe tier. Charges its one-time cost from cash; then it carries weekly upkeep. */
+export function setClothes(state: GameState, clothesId: string): GameState {
+  const tier = CLOTHES_TIER_BY_ID[clothesId];
+  if (!tier) return state;
+  if (state.lifestyle.clothes === clothesId) return state;
+  if (!affordable(state, tier.cost)) return state;
+
+  const s = clone(state);
+  pay(s, tier.cost);
+  s.lifestyle.clothes = clothesId;
+  pushLog(s, 'info', `Bought a ${tier.name} (−${moneyShort(tier.cost)}).`);
   return s;
 }
 
