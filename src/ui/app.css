@@ -483,6 +483,55 @@ select.sel {
   font-family: var(--font-ui);
 }
 
+/* Range slider — accent-filled thumb/track */
+input[type='range'].slider {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+/* Pill toggle */
+.toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 13px;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.toggle .track {
+  width: 38px;
+  height: 22px;
+  border-radius: var(--radius-pill);
+  background: var(--well);
+  border: 1px solid var(--border-strong);
+  position: relative;
+  transition: background 140ms;
+}
+.toggle .knob {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--text-muted);
+  transition:
+    left 140ms,
+    background 140ms;
+}
+.toggle.on .track {
+  background: var(--accent-wash);
+  border-color: var(--accent);
+}
+.toggle.on .knob {
+  left: 18px;
+  background: var(--accent);
+}
+
 /* ── Mobile: nav becomes a bottom bar ──────────────────────────────────────── */
 @media (max-width: 720px) {
   .body {

@@ -4,14 +4,17 @@ import { useGameStore } from '../../store/gameStore';
 import { bankRate } from '../../engine/economy';
 import { elixirAffordable } from '../../engine/selectors';
 import { moneyShort } from '../../util/money';
-import { Button, Card, Tag, ProgressBar, MoneyValue } from '../components';
+import { Button, Card, Tag, ProgressBar, MoneyValue, Toggle } from '../components';
 
 export function BankTab() {
   const game = useGameStore((s) => s.game)!;
   const bankDeposit = useGameStore((s) => s.bankDeposit);
   const bankWithdraw = useGameStore((s) => s.bankWithdraw);
+  const updateBanking = useGameStore((s) => s.updateBanking);
   const purchaseElixir = useGameStore((s) => s.purchaseElixir);
   const [amount, setAmount] = useState('');
+
+  const autoPct = game.banking.autoDepositPct;
 
   const amt = Math.max(0, Math.floor(Number(amount) || 0));
   const rate = bankRate(game.money.bank);
@@ -63,6 +66,35 @@ export function BankTab() {
             <Button disabled={amt <= 0} onClick={() => bankWithdraw(amt)}>
               Withdraw
             </Button>
+          </div>
+        </Card>
+
+        <Card
+          title="Automation"
+          desc="Route part of every paycheck to the bank, and cover upkeep from savings when cash runs short."
+        >
+          <div className="rowline" style={{ borderBottom: 'none' }}>
+            <span>Auto-deposit of each paycheck</span>
+            <span className="mono" style={{ color: 'var(--accent)' }}>
+              {autoPct}%
+            </span>
+          </div>
+          <input
+            className="slider"
+            type="range"
+            min={0}
+            max={100}
+            step={5}
+            value={autoPct}
+            onChange={(e) => updateBanking({ autoDepositPct: Number(e.target.value) })}
+            aria-label="Auto-deposit percentage"
+          />
+          <div style={{ marginTop: 10 }}>
+            <Toggle
+              on={game.banking.payUpkeepFromBank}
+              onChange={(v) => updateBanking({ payUpkeepFromBank: v })}
+              label="Pay upkeep from bank when cash is short"
+            />
           </div>
         </Card>
 

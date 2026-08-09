@@ -140,6 +140,31 @@ export function Card({
   );
 }
 
+// ── Toggle ────────────────────────────────────────────────────────────────────
+export function Toggle({
+  on,
+  onChange,
+  label,
+}: {
+  on: boolean;
+  onChange: (next: boolean) => void;
+  label: ReactNode;
+}) {
+  return (
+    <button
+      className={`toggle ${on ? 'on' : ''}`}
+      onClick={() => onChange(!on)}
+      role="switch"
+      aria-checked={on}
+    >
+      <span className="track">
+        <span className="knob" />
+      </span>
+      {label}
+    </button>
+  );
+}
+
 // ── Modal ─────────────────────────────────────────────────────────────────────
 export function Modal({
   children,
