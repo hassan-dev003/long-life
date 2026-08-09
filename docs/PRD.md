@@ -90,10 +90,12 @@ only things that carry between runs.
 - 1 week/tick · 4 weeks/month · 48 weeks/year. Start age set by scenario (usually 18).
 - **Turn-based, no time-skip** (see §3).
 - **Health** and **Happiness** (0–100), decaying weekly; decay accelerates with age past ~25.
-- **Death rules (both run-terminal):**
+- **Run-terminal conditions:**
   - **Health at 0 for 3 consecutive weeks → death** (the body gives out).
   - **Happiness at 0 for 3 consecutive weeks → breakdown** (the mind gives out — a "conscious death").
-  - Hitting 0 is a warning state with a 3-week grace window to recover, not an instant game-over.
+  - **Cash negative for 2 consecutive weeks → bankruptcy** (added in M1): the first week in the red
+    fires a blocking warning; if still negative the next week, the run ends.
+  - Each is a warning state with a short grace window to recover, not an instant game-over.
 - On a run ending, the player starts a **new life** by choosing a scenario; unlocked **perks and
   achievements persist**, nothing else does.
 

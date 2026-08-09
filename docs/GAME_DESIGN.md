@@ -44,7 +44,10 @@ CROSS_PENALTY = 0.30
 `agingMod` (<1 slows aging) comes from **insurance, traits, and perks only** — there are no prestige
 multipliers. Passive contributions come from residence, lifestyle, and (later) deep-health inputs.
 
-### 1.3 Death & breakdown
+**Starting values (as built):** new lives begin at **health 80 / happiness 80** — deliberately below the
+*Zen* achievement threshold (both ≥ 90) so it must be earned, with headroom to climb through leisure.
+
+### 1.3 Death, breakdown & bankruptcy
 Track `weeksAtZeroHealth` / `weeksAtZeroHappy`:
 ```
 health   == 0 ? weeksAtZeroHealth++ : weeksAtZeroHealth = 0
@@ -53,12 +56,28 @@ weeksAtZeroHealth >= 3 → DEATH      ("your body gave out")
 weeksAtZeroHappy   >= 3 → BREAKDOWN  ("your mind gave out")
 ```
 Both are run-terminal. Reaching 0 shows an escalating warning; the 3-week grace lets a desperate player
-claw back before it's over. On a run ending, the player picks a new scenario; **unlocked perks &
-achievements persist, nothing else does** (no prestige carry-over).
+claw back before it's over.
+
+**Bankruptcy (as built in M1) — a third run-terminal condition.** Track `weeksInDebt`:
+```
+cash < 0 ? weeksInDebt++ : weeksInDebt = 0
+weeksInDebt == 1                → WARNING (blocking "balance severely low" modal)
+weeksInDebt >= BANKRUPTCY_GRACE  → BANKRUPT ("the debts came due")   // BANKRUPTCY_GRACE = 2
+```
+The first week in the red fires a blocking warning; if cash is still negative the next week, the run
+ends. Because purchases and leisure are cash-gated (§1.4), debt only accrues from **unavoidable upkeep
+or bad events** — the *pay-upkeep-from-bank* toggle is the player's tool to avoid it.
+
+On any run ending, the player picks a new scenario; **unlocked perks & achievements persist, nothing else
+does** (no prestige carry-over).
 
 ### 1.4 Money model
 - `cash` (liquid), `bank` (safe yield), asset holdings (M3). Net worth = all liquid + illiquid asset
   value (residence-if-owned, businesses, property).
+- **Cash is what you spend (as built).** Purchases — tuition, subscriptions, leisure, the Elixir — draw
+  from and are gated on **cash-in-hand only**; the **bank is a separate vault you must withdraw from
+  first**. Bank still counts toward net worth (it's your wealth), but it never silently funds a purchase.
+  The lone exception is the opt-in *pay-upkeep-from-bank* automation, which covers recurring upkeep only.
 - **Hard ceiling `MONEY_CAP = 999_999_999_999_999`** (~$1 quadrillion). `cash`, `bank`, net worth, and
   holdings are each clamped at the cap.
 - **`moneyShort` — 3 significant figures**, suffixes `k/M/B/T`:

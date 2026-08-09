@@ -18,10 +18,20 @@ hunger, reverse climate change — the game's moral capstone.
 
 ## Status
 
-🚧 **Design finalized; build next.** The **design bible** (five docs in `docs/`) is complete and
-finalized at v1.0 — it specifies the game end to end. The **M1 playable slice** is the next step (see the
-roadmap). An earlier single-file React prototype proved the core loop; this is the ground-up, structured
+🟢 **M1 is playable.** The **design bible** (five docs in `docs/`) is finalized at v1.0 and specifies the
+game end to end; the **M1 vertical slice** is now built on top of it — a full life is playable
+end-to-end in the browser, saves survive a refresh, and a seeded golden-run test locks the behavior in
+CI. An earlier single-file React prototype proved the core loop; this is the ground-up, structured
 rebuild.
+
+**What's in M1:** the pure `tick(state, action)` engine + seeded RNG, versioned localStorage saves,
+Health/Happiness with age-driven decay, **death, breakdown & bankruptcy** rules, the Elixir, the
+education spine (with majors), the unique-gated **Tech** career ladder + entry jobs (backed by a
+lightweight skills slice), leisure, the bank with an **auto-deposit** slider, home/food/subscription
+lifestyle, a small event set (outcome + choice), and the **Normal Life** scenario. Purchases are gated on
+**cash-in-hand** (the bank is a separate vault you withdraw from). All wired to a dark-first,
+green-accented UI: a **Live** hub, **Work / Learn / Bank / Finances / Lifestyle / Legacy** tabs, blocking
+modals (event choice, goal celebration, bankruptcy warning, death), and a **New Life** reset.
 
 ## The design bible
 
@@ -56,9 +66,9 @@ saves. See the Technical Architecture doc.
 
 ## Roadmap
 
-- **M1 — Playable vertical slice:** pure tick engine + save/load + Health/Happiness + death rules + Elixir
-  + education spine + one career ladder + leisure + bank + a small event set + the Normal Life scenario.
-  *A full life playable end-to-end, deterministic golden-run test in CI.*
+- **M1 — Playable vertical slice ✅ built:** pure tick engine + save/load + Health/Happiness + death rules
+  + Elixir + education spine + one career ladder + leisure + bank + a small event set + the Normal Life
+  scenario. *A full life playable end-to-end, deterministic golden-run test in CI.*
 - **M2 — Economy depth:** all majors & career ladders, businesses, split lifestyle, auxiliary education.
 - **M3 — Markets & property:** market tabs, parody tickers, hidden volatility, news feed, real estate.
 - **M4 — Life texture:** relationships/family, skills/traits, life courses, deep health.
@@ -67,13 +77,20 @@ saves. See the Technical Architecture doc.
 
 ## Development
 
-_Not scaffolded yet — the commands below land with the M1 setup._
-
 ```bash
 npm install
-npm run dev      # Vite dev server
-npm test         # Vitest (engine + golden-run tests)
+npm run dev        # Vite dev server
+npm test           # Vitest (engine, property, and the seeded golden-run test)
+npm run typecheck  # tsc --noEmit (strict)
+npm run lint       # ESLint
+npm run build      # typecheck + production build
 ```
+
+**Architecture:** a framework-agnostic pure engine (`src/engine/`) with the world defined as data
+(`src/content/`, `src/config/tuning.ts`), a typed `GameState`/`Profile` (`src/state/`), a thin Zustand
+store (`src/store/`), and a token-driven React UI (`src/ui/`). The dependency arrow points one way:
+UI → store → engine → content/config. All balance numbers live in `config/tuning.ts` and per-item
+`content/` rows — re-tuning never touches engine logic. See `docs/TECHNICAL_ARCHITECTURE.md`.
 
 ---
 

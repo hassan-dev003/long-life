@@ -116,13 +116,13 @@ Two distinct persisted stores — **don't conflate them**:
 
 ### 4.1 `GameState` — one life (a run)
 ```ts
-interface GameState {
-  meta: { schemaVersion: number; scenarioId: string; rngState: number; startAge: number };
+interface GameState {                                                       // schemaVersion is 2 as of M1
+  meta: { schemaVersion: number; scenarioId: string; rngState: number; startAge: number; activePerks: PerkId[] };
   clock: { totalWeeks: number };
   stats: { health: number; happiness: number; weeksAtZeroHealth: number; weeksAtZeroHappy: number };
-  money: { cash: number; bank: number; bankInterestEarned: number; lifetimeEarned: number };
+  money: { cash: number; bank: number; bankInterestEarned: number; lifetimeEarned: number; weeksInDebt: number };
   banking: { autoDepositPct: number; payUpkeepFromBank: boolean; overdraft: boolean };
-  education: { credentials: CredentialId[]; enrolled: { id: string; progress: number } | null };
+  education: { credentials: CredentialId[]; enrolled: { id: string; progress: number; weeks: number } | null };
   skills: Partial<Record<SkillId, number>>;
   traits: TraitId[];
   career: { roleId: RoleId | null; roleTenure: number; fieldExp: Partial<Record<Field, number>> };
@@ -134,12 +134,17 @@ interface GameState {
   relationships: Relationship[];                                            // M4
   elixir: { count: number; price: number };
   progress: { peakNet: number; goalsMet: string[]; runAchievements: string[] };
-  log: LogEntry[];                 // capped ring (e.g. last 60)
-  status: 'alive' | 'dead' | 'breakdown';
+  log: LogEntry[];                 // capped ring (last 60)
+  pendingEvent: { eventId: string } | null;         // a choice event awaiting the modal
+  pendingGoal: { goalId: string; description: string } | null;  // goal celebration awaiting ack
+  pendingBankruptcyWarning: boolean;                 // first week in debt — blocking warning
+  status: 'alive' | 'dead' | 'breakdown' | 'bankrupt';
 }
 ```
 `ResidenceRef` = `{ kind: 'rented'; tier: TierId } | { kind: 'owned'; propertyId: string }` — this models
-the "live in an owned property" rule cleanly (§ GDD 8.4).
+the "live in an owned property" rule cleanly (§ GDD 8.4). The three `pending*` fields drive the blocking
+modals and gate the tick (no week advances while one is set); `bankrupt` is the run-terminal state for
+sustained negative cash (§ GDD 1.3).
 
 ### 4.2 `Profile` — the account (persists across all runs)
 ```ts
@@ -238,18 +243,22 @@ the display formatter everywhere in the UI.
 // state/persistence.ts
 const RUN_KEY = 'longlife.run';
 const PROFILE_KEY = 'longlife.profile';
-export const SCHEMA_VERSION = 1;
+export const SCHEMA_VERSION = 2;   // v2 added the bankruptcy fields (weeksInDebt, pendingBankruptcyWarning)
 
-saveRun(state)      // called on every tick + every instant transaction (debounced write)
+saveRun(state)      // called on every tick + every instant transaction (synchronous write)
 loadRun(): GameState | null
 saveProfile(p) / loadProfile(): Profile
 ```
-- **Autosave every tick** (and after instant transactions), debounced to avoid thrashing localStorage.
-- **Versioned + migrated.** Each save carries `schemaVersion`; on load, `migrate(save)` upgrades old
-  saves through ordered migration steps. Never silently drop a player's life on a schema change.
-- **Corruption-safe.** Wrap parse in try/catch; on failure, keep a backup key and surface a "couldn't
-  load save" path rather than crashing.
-- Explicit **New Game** (pick scenario) and **Reset** actions.
+- **Autosave on every commit** (each tick and instant transaction), written **synchronously**. Turn-based
+  play writes at most a few times/second, so there's no thrash to debounce — and a synchronous write means
+  a refresh mid-turn never loses the last action (the "closing the tab loses nothing" criterion). *(An
+  earlier debounced write was dropped for exactly this reason.)*
+- **Versioned + migrated.** Each save carries `schemaVersion`; on load, an ordered `RUN_MIGRATIONS` ladder
+  upgrades old saves step by step (the v1→v2 step backfills the bankruptcy fields). Never silently drop a
+  player's life on a schema change; every bump ships a migration test.
+- **Corruption-safe.** Wrap parse in try/catch; on failure, keep a backup key and return "no save" rather
+  than crashing.
+- Explicit **New Game** (pick scenario) and **New Life / Reset** (abandon the run → scenario select) actions.
 
 ---
 
@@ -303,19 +312,27 @@ saveProfile(p) / loadProfile(): Profile
 
 ---
 
-## 13. M1 scaffold — the first thing we build
+## 13. M1 scaffold — ✅ built
 
-1. Vite + React + TS + Vitest + ESLint/Prettier project skeleton; port design tokens/CSS.
+1. Vite + React + TS + Vitest + ESLint/Prettier project skeleton; design tokens in `ui/theme.css`.
 2. `state/types.ts` (GameState + Profile), `util/money.ts`, `config/tuning.ts`, `engine/rng.ts`.
-3. `engine/tick.ts` + `steps/*` for M1 (interest, income, upkeep, decay, study, death) + `selectors.ts`.
+3. `engine/tick.ts` + `steps/*` for M1 (interest, income, upkeep, decay, work, study, activity, skills,
+   events) + `finalize.ts` (clamp/death/bankruptcy/goals/achievements) + `selectors.ts`.
 4. `content/` for M1: education spine + majors, the **Tech** career ladder + entry jobs, activities,
-   home tiers + a couple subscriptions, the Normal Life scenario, a small event set, the Elixir.
-5. `state/persistence.ts` (autosave + v1 + load) and `store/gameStore.ts`.
-6. UI shell + Live/Work/Learn/Bank/Lifestyle tabs + stat bars + log + death/goal modals.
-7. Golden-run test: birth → work/study loop → buy an Elixir → reach a natural death, deterministically.
+   home/food tiers + subscriptions, the Normal Life scenario, a small event set, the Elixir.
+5. `state/persistence.ts` (synchronous autosave + v2 migrations + load) and `store/gameStore.ts`.
+6. UI shell + Live/Work/Learn/Bank/**Finances**/Lifestyle/**Legacy** tabs + stat meters + log +
+   death/goal/event/**bankruptcy-warning** modals + a **New Life** reset.
+7. Golden-run test: birth → educate → promote → buy an Elixir → natural death, deterministic in CI.
 
-**Definition of done for M1:** a full life is playable end-to-end in the browser, saves survive refresh,
-and a seeded golden run passes in CI.
+**Lightweight skills in M1 (decision):** the finalized Tech ladder gates roles on skills and
+achievements, nominally M4 systems. Rather than stub those gates, M1 ships a *minimal* skills slice —
+`coding`/`leadership`/etc. accrue by working (`steps/skills.ts`) and the four career achievements are
+granted on milestone conditions — so `content/careers.ts` stays byte-faithful and every promotion is
+genuinely unique-gated. The full skills/traits/Life-Courses system still lands in M4.
+
+**Definition of done for M1 (met):** a full life is playable end-to-end in the browser, saves survive
+refresh, and a seeded golden run passes in CI.
 
 ---
 
