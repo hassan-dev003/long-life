@@ -93,8 +93,9 @@ export interface Financials {
   salary: number; // per working week (0 if unemployed)
   interest: number; // projected weekly bank interest at the current balance
   upkeep: UpkeepBreakdown;
-  netWorking: number; // salary + interest − upkeep (a week you work)
-  netIdle: number; // interest − upkeep (a week you don't work)
+  totalIncome: number; // salary + interest
+  totalCosts: number; // upkeep total
+  net: number; // totalIncome − totalCosts
 }
 
 export function financials(s: GameState): Financials {
@@ -103,12 +104,7 @@ export function financials(s: GameState): Financials {
   const salary = role?.salaryPerWeek ?? 0;
   const interest = weeklyInterest(s.money.bank);
   const upkeep = weeklyUpkeep(s, mods.priceMod);
-  return {
-    role,
-    salary,
-    interest,
-    upkeep,
-    netWorking: salary + interest - upkeep.total,
-    netIdle: interest - upkeep.total,
-  };
+  const totalIncome = salary + interest;
+  const totalCosts = upkeep.total;
+  return { role, salary, interest, upkeep, totalIncome, totalCosts, net: totalIncome - totalCosts };
 }

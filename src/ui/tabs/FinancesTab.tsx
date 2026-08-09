@@ -35,21 +35,21 @@ export function FinancesTab() {
         <Card
           title="Weekly cash flow"
           tags={
-            <>
-              <Tag tone={fin.netWorking >= 0 ? 'pos' : 'neg'}>
-                net working {fin.netWorking >= 0 ? '+' : ''}
-                {fin.netWorking}
-              </Tag>
-            </>
+            <Tag tone={fin.net >= 0 ? 'pos' : 'neg'}>
+              net {fin.net >= 0 ? '+' : ''}
+              {fin.net}/wk
+            </Tag>
           }
         >
-          <div style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em' }}>
-            Income
-          </div>
+          <div className="fin-section">Income</div>
           <Row label={fin.role ? `Salary — ${fin.role.title}` : 'Salary — no job'} value={fin.salary} sign />
           <Row label="Bank interest" value={fin.interest} sign />
+          <div className="rowline fin-subtotal">
+            <span>Total income</span>
+            <MoneyValue value={fin.totalIncome} sign />
+          </div>
 
-          <div style={{ color: 'var(--text-muted)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.06em', marginTop: 8 }}>
+          <div className="fin-section" style={{ marginTop: 8 }}>
             Costs
           </div>
           <Row label={`Home — ${residenceName}`} value={-fin.upkeep.residence} sign />
@@ -66,14 +66,14 @@ export function FinancesTab() {
           ) : (
             <Row label="Subscriptions" value={0} sign />
           )}
-
-          <div className="rowline" style={{ borderTop: '1px solid var(--border-strong)', borderBottom: 'none', marginTop: 4, fontWeight: 600 }}>
-            <span>Net — a week you work</span>
-            <MoneyValue value={fin.netWorking} sign />
+          <div className="rowline fin-subtotal">
+            <span>Total costs</span>
+            <MoneyValue value={-fin.totalCosts} sign />
           </div>
-          <div className="rowline" style={{ borderBottom: 'none' }}>
-            <span style={{ color: 'var(--text-secondary)' }}>Net — a week you rest</span>
-            <MoneyValue value={fin.netIdle} sign />
+
+          <div className="rowline fin-net">
+            <span>Weekly net</span>
+            <MoneyValue value={fin.net} sign />
           </div>
         </Card>
 
@@ -86,10 +86,9 @@ export function FinancesTab() {
             <MoneyValue value={netWorth(game)} />
           </div>
           <Row label="Lifetime earned" value={game.money.lifetimeEarned} />
-          <Row label="Interest earned" value={game.money.bankInterestEarned} />
           <div className="rowline" style={{ borderBottom: 'none' }}>
-            <span>Elixir price (next)</span>
-            <MoneyValue value={game.elixir.price} />
+            <span>Interest earned</span>
+            <MoneyValue value={game.money.bankInterestEarned} />
           </div>
         </Card>
       </div>

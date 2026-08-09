@@ -1,18 +1,22 @@
-/** Live — the week-advancing hub. Every action here spends one week. */
+/** Live — the week-advancing hub. Every action here spends one week (the Elixir is instant). */
 import { useGameStore } from '../../store/gameStore';
 import { work, study, activity } from '../../engine/actions';
-import { currentRole } from '../../engine/selectors';
+import { currentRole, elixirAffordable } from '../../engine/selectors';
 import { ACTIVITIES } from '../../content/activities';
 import { moneyShort } from '../../util/money';
-import { Button, Tag } from '../components';
+import { Button, Card, Tag, ProgressBar } from '../components';
 
 export function LiveTab() {
   const game = useGameStore((s) => s.game)!;
   const advance = useGameStore((s) => s.advance);
+  const purchaseElixir = useGameStore((s) => s.purchaseElixir);
   const blocked = !!game.pendingEvent || !!game.pendingGoal || game.status !== 'alive';
 
   const role = currentRole(game);
   const enrolled = game.education.enrolled;
+  const canElixir = elixirAffordable(game);
+  const liquid = game.money.cash + game.money.bank;
+  const elixirPct = Math.min(100, (liquid / game.elixir.price) * 100);
 
   return (
     <div>
@@ -59,6 +63,39 @@ export function LiveTab() {
             </div>
           </button>
         ))}
+      </div>
+
+      <h2 className="tab-title" style={{ fontSize: 15, marginTop: 20 }}>
+        Longevity
+      </h2>
+      <p className="tab-sub">The only way to buy more life against aging.</p>
+      <div className="grid">
+        <Card
+          title="⏳ The Elixir"
+          owned={game.elixir.count > 0}
+          tags={
+            <>
+              <Tag tone="neg">{moneyShort(game.elixir.price)}</Tag>
+              <Tag>drunk ×{game.elixir.count}</Tag>
+            </>
+          }
+          desc="Turn the clock back ten years and restore health. Each one costs far more than the last."
+        >
+          <ProgressBar pct={elixirPct} />
+          <div className="card-desc">
+            {canElixir
+              ? 'You can afford it.'
+              : `${moneyShort(liquid)} / ${moneyShort(game.elixir.price)}`}
+          </div>
+          <Button
+            variant="primary"
+            block
+            disabled={blocked || !canElixir}
+            onClick={purchaseElixir}
+          >
+            Drink the Elixir
+          </Button>
+        </Card>
       </div>
     </div>
   );
