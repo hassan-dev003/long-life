@@ -3,10 +3,11 @@
  * the active tab, the life log, and the blocking modals. Reads state through the
  * store's selector hooks so each piece re-renders only when its slice changes.
  */
+import { useState } from 'react';
 import './ui/app.css';
 import { useGameStore, type TabId } from './store/gameStore';
 import { clockDisplay, netWorth } from './engine/selectors';
-import { StatMeter, MoneyValue } from './ui/components';
+import { StatMeter, MoneyValue, Modal, Button } from './ui/components';
 import { StartScreen } from './ui/StartScreen';
 import { Modals } from './ui/Modals';
 import { LiveTab } from './ui/tabs/LiveTab';
@@ -46,6 +47,39 @@ function Clock() {
   );
 }
 
+function ResetLife() {
+  const endRunToMenu = useGameStore((s) => s.endRunToMenu);
+  const [confirming, setConfirming] = useState(false);
+  return (
+    <>
+      <button
+        className="reset-btn"
+        onClick={() => setConfirming(true)}
+        title="Abandon this life and choose a new scenario"
+      >
+        ⟲ New Life
+      </button>
+      {confirming && (
+        <Modal>
+          <h2>Start a new life?</h2>
+          <p>
+            This abandons your current character and returns to scenario selection. Perks and
+            achievements are kept — the current life is lost.
+          </p>
+          <div className="modal-actions">
+            <Button variant="danger" onClick={endRunToMenu}>
+              Abandon &amp; choose scenario
+            </Button>
+            <Button variant="ghost" onClick={() => setConfirming(false)}>
+              Keep playing
+            </Button>
+          </div>
+        </Modal>
+      )}
+    </>
+  );
+}
+
 function TopBar() {
   const game = useGameStore((s) => s.game)!;
   return (
@@ -53,6 +87,7 @@ function TopBar() {
       <div style={{ display: 'flex', gap: 18, alignItems: 'center' }}>
         <span className="wordmark">LONG LIFE</span>
         <Clock />
+        <ResetLife />
       </div>
       <div className="hero">
         <span className="hero-label">Net Worth</span>

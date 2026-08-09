@@ -50,6 +50,24 @@
   color: var(--accent);
 }
 
+.reset-btn {
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-strong);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    color 120ms,
+    border-color 120ms;
+}
+.reset-btn:hover {
+  color: var(--text-primary);
+  border-color: var(--text-muted);
+}
+
 .hero {
   display: flex;
   flex-direction: column;

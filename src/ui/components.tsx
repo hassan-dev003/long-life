@@ -1,5 +1,6 @@
 /** Presentational components shared across tabs. Fed by props; no store access. */
 import type { ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { moneyShort, money as moneyExact } from '../util/money';
 
 // ── MoneyValue ────────────────────────────────────────────────────────────────
@@ -173,9 +174,13 @@ export function Modal({
   children: ReactNode;
   celebrate?: boolean;
 }) {
-  return (
+  // Portal to <body> so the fixed overlay centers on the viewport regardless of
+  // where it's rendered (e.g. inside the top bar, which has a backdrop-filter that
+  // would otherwise become the containing block).
+  return createPortal(
     <div className="overlay">
       <div className={`modal ${celebrate ? 'celebrate' : ''}`}>{children}</div>
-    </div>
+    </div>,
+    document.body,
   );
 }
