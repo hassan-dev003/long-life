@@ -6,6 +6,7 @@ import { TUNING } from '../config/tuning';
 import { clampMoney } from '../util/money';
 import { ROLE_BY_ID, ladderOfRole, type RoleDef } from '../content/careers';
 import { meets, type MeetsResult } from './eligibility';
+import { computeRunMods, weeklyInterest, weeklyUpkeep, type UpkeepBreakdown } from './economy';
 import type { Field, GameState } from '../state/types';
 
 const MONTH_ABBR = [
@@ -79,4 +80,35 @@ export function fieldExp(s: GameState, field: Field): number {
 
 export function elixirAffordable(s: GameState): boolean {
   return s.money.cash + s.money.bank >= s.elixir.price;
+}
+
+/**
+ * A forecast of this week's cash flow, derived from current state. Income is
+ * conditional on the action (salary only lands on a working week), so we surface
+ * both a working-week and an idle-week net. Uses the same upkeep/interest math the
+ * tick does, so the numbers match what actually happens.
+ */
+export interface Financials {
+  role: RoleDef | null;
+  salary: number; // per working week (0 if unemployed)
+  interest: number; // projected weekly bank interest at the current balance
+  upkeep: UpkeepBreakdown;
+  netWorking: number; // salary + interest − upkeep (a week you work)
+  netIdle: number; // interest − upkeep (a week you don't work)
+}
+
+export function financials(s: GameState): Financials {
+  const mods = computeRunMods(s);
+  const role = currentRole(s);
+  const salary = role?.salaryPerWeek ?? 0;
+  const interest = weeklyInterest(s.money.bank);
+  const upkeep = weeklyUpkeep(s, mods.priceMod);
+  return {
+    role,
+    salary,
+    interest,
+    upkeep,
+    netWorking: salary + interest - upkeep.total,
+    netIdle: interest - upkeep.total,
+  };
 }
