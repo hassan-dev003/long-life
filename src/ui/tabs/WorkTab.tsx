@@ -2,7 +2,7 @@
 import { useGameStore } from '../../store/gameStore';
 import { meets } from '../../engine/eligibility';
 import { currentRole, nextPromotion } from '../../engine/selectors';
-import { ENTRY_JOBS, TECH } from '../../content/careers';
+import { ENTRY_JOBS, LADDERS } from '../../content/careers';
 import { moneyShort } from '../../util/money';
 import { fmt1 } from '../../util/format';
 import { Button, Card, Tag } from '../components';
@@ -88,18 +88,18 @@ export function WorkTab() {
         </Card>
       )}
 
-      <h2 className="tab-title" style={{ fontSize: 15, marginTop: 20 }}>
-        Technology ladder
-      </h2>
-      <div className="grid">
-        {TECH.roles.map((r) => (
-          <JobCard key={r.id} r={r} />
-        ))}
-      </div>
+      {LADDERS.map((ladder) => (
+        <div key={ladder.field}>
+          <h3 className="section-title">{ladder.name}</h3>
+          <div className="grid">
+            {ladder.roles.map((r) => (
+              <JobCard key={r.id} r={r} />
+            ))}
+          </div>
+        </div>
+      ))}
 
-      <h2 className="tab-title" style={{ fontSize: 15, marginTop: 20 }}>
-        Entry jobs (no education)
-      </h2>
+      <h3 className="section-title">Entry jobs (no education)</h3>
       <div className="grid">
         {ENTRY_JOBS.map((r) => (
           <JobCard key={r.id} r={r} />

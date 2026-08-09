@@ -1,16 +1,18 @@
 /**
- * Step 9 — lightweight skill accrual + career-achievement grants (M1).
+ * Step 9 — skill accrual + career-achievement grants.
  *
- * Skills grow by use so the finalized Tech ladder's skill/achievement gates are
- * genuinely reachable without the full M4 skills system. The four career-gate
- * achievements are granted here (they're flagged `manual` in the registry), each
- * on a milestone that is monotonic and lands *before* the role that requires it —
- * so every promotion stays reachable and uniquely gated.
+ * Skills grow by use so every ladder's skill gates are genuinely reachable by
+ * working that field: each role carries a `skillGain` map (content/careers.ts),
+ * applied here on a working week. A ladder only gates on skills its own roles
+ * grow, so no promotion is ever unreachable.
+ *
+ * The four Tech career-gate achievements are granted here (they're flagged
+ * `manual` in the registry), each on a milestone that lands *before* the role
+ * that requires it — so every Tech promotion stays reachable and uniquely gated.
  */
 import { TUNING } from '../../config/tuning';
 import { pushLog } from '../../state/mutations';
 import { ACHIEVEMENT_BY_ID } from '../../content/achievements';
-import { TECH } from '../../content/careers';
 import { currentRole } from '../selectors';
 import type { GameState, SkillId } from '../../state/types';
 import type { TickCtx } from '../context';
@@ -28,29 +30,17 @@ function grant(s: GameState, achId: string): void {
   pushLog(s, 'milestone', `${def?.emoji ?? '🏆'} Achievement: ${def?.name ?? achId}`);
 }
 
-/** Index of a role within the Tech ladder, or -1 if not a Tech-ladder role. */
-function techIndex(roleId: string | null): number {
-  if (!roleId) return -1;
-  return TECH.roles.findIndex((r) => r.id === roleId);
-}
-
-const LEAD_IDX = TECH.roles.findIndex((r) => r.id === 'tech-lead');
-const SENIOR_IDX = TECH.roles.findIndex((r) => r.id === 'tech-senior');
-const MANAGER_IDX = TECH.roles.findIndex((r) => r.id === 'eng-manager');
-
 export function stepSkills(s: GameState, ctx: TickCtx): void {
   if (ctx.action.type === 'WORK') {
     const role = currentRole(s);
-    if (role?.field === 'tech') {
-      const idx = techIndex(role.id);
-      bump(s, 'coding', TUNING.CODING_PER_WORK_WEEK);
-      if (idx >= SENIOR_IDX) bump(s, 'finance', TUNING.FINANCE_PER_SENIOR_WEEK);
-      if (idx >= LEAD_IDX) bump(s, 'leadership', TUNING.LEADERSHIP_PER_LEAD_WEEK);
-      if (idx >= MANAGER_IDX) bump(s, 'negotiation', TUNING.NEGOTIATION_PER_MGMT_WEEK);
+    if (role?.skillGain) {
+      for (const [id, by] of Object.entries(role.skillGain)) {
+        if (by) bump(s, id as SkillId, by);
+      }
     }
   }
 
-  // Career-gate achievements — monotonic milestones, each earnable before its role.
+  // Tech career-gate achievements — monotonic milestones, each earnable before its role.
   const coding = s.skills.coding ?? 0;
   const leadership = s.skills.leadership ?? 0;
   const role = currentRole(s);

@@ -59,8 +59,14 @@ export const TUNING = {
   // Study (GDD §3.1) — small happiness cost per study week
   STUDY_HAPPY_COST: 0.6,
 
-  // Skills (M1 lightweight accrual — see engine/steps/skills.ts)
+  // Skills (lightweight accrual — see engine/steps/skills.ts). Roles carry a
+  // per-role `skillGain` map (content/careers.ts) built from these rates:
+  //   primary   = the field's core skill, grown every working week
+  //   secondary = a supporting skill, grown more slowly
   SKILL_MAX: 100,
+  SKILL_PRIMARY_PER_WEEK: 0.9,
+  SKILL_SECONDARY_PER_WEEK: 0.5,
+  // Tech-specific rates, kept distinct so the M1 Tech ladder's accrual is unchanged.
   CODING_PER_WORK_WEEK: 0.9, // coding grows while working in tech
   LEADERSHIP_PER_LEAD_WEEK: 0.7, // leadership grows in lead-and-up roles
   NEGOTIATION_PER_MGMT_WEEK: 0.5,
