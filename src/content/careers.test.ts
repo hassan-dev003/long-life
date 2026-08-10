@@ -18,6 +18,17 @@ function skillsInGate(req: Requirement, acc: Set<SkillId> = new Set()): Set<Skil
   return acc;
 }
 
+/** Collect every requirement of a given kind in a tree. */
+function reqsOfKind<K extends Requirement['kind']>(
+  req: Requirement,
+  kind: K,
+  acc: Extract<Requirement, { kind: K }>[] = [],
+): Extract<Requirement, { kind: K }>[] {
+  if (req.kind === kind) acc.push(req as Extract<Requirement, { kind: K }>);
+  if (req.kind === 'allOf' || req.kind === 'anyOf') req.reqs.forEach((r) => reqsOfKind(r, kind, acc));
+  return acc;
+}
+
 describe('career ladders', () => {
   it('give every role a unique gate (no strictly-dominated roles)', () => {
     for (const ladder of LADDERS) {
@@ -58,6 +69,23 @@ describe('career ladders', () => {
       for (const role of ladder.roles) {
         expect(ROLE_BY_ID[role.id]).toBe(role);
         expect(ladderOfRole(role.id)).toBe(ladder);
+      }
+    }
+  });
+
+  it('gate promotions on current-role tenure, never whole-field experience', () => {
+    for (const ladder of LADDERS) {
+      for (let i = 1; i < ladder.roles.length; i++) {
+        const role = ladder.roles[i]!;
+        const prev = ladder.roles[i - 1]!;
+        // Time served is measured in the current role, not across the whole field.
+        expect(reqsOfKind(role.gate, 'fieldExp'), `${role.id} still gates on fieldExp`).toHaveLength(
+          0,
+        );
+        // Any tenure requirement must be for the role directly below it.
+        for (const rt of reqsOfKind(role.gate, 'roleTenure')) {
+          expect(rt.roleId, `${role.id} tenure-gates on a non-adjacent role`).toBe(prev.id);
+        }
       }
     }
   });

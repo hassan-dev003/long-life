@@ -94,7 +94,7 @@ export const TECH: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'tech', weeks: 48 },
+          { kind: 'roleTenure', roleId: 'tech-junior', weeks: 36 },
           { kind: 'skill', id: 'coding', min: 40 },
           { kind: 'achievement', id: 'shipped-a-feature' },
         ],
@@ -110,7 +110,7 @@ export const TECH: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'tech', weeks: 96 },
+          { kind: 'roleTenure', roleId: 'swe', weeks: 48 },
           { kind: 'skill', id: 'coding', min: 65 },
           { kind: 'achievement', id: 'owned-a-system' },
         ],
@@ -158,7 +158,7 @@ export const TECH: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'tech', weeks: 192 },
+          { kind: 'roleTenure', roleId: 'eng-manager', weeks: 72 },
           { kind: 'skill', id: 'leadership', min: 75 },
           { kind: 'skill', id: 'finance', min: 40 },
         ],
@@ -242,7 +242,7 @@ export const MEDICAL: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'medical', weeks: 192 },
+          { kind: 'roleTenure', roleId: 'physician', weeks: 60 },
           { kind: 'skill', id: 'discipline', min: 50 },
         ],
       },
@@ -258,7 +258,7 @@ export const MEDICAL: FieldLadder = {
         kind: 'allOf',
         reqs: [
           { kind: 'credential', id: 'master:medicine' },
-          { kind: 'fieldExp', field: 'medical', weeks: 240 },
+          { kind: 'roleTenure', roleId: 'hospitalist', weeks: 72 },
           { kind: 'skill', id: 'discipline', min: 65 },
         ],
       },
@@ -273,7 +273,7 @@ export const MEDICAL: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'medical', weeks: 336 },
+          { kind: 'roleTenure', roleId: 'specialist', weeks: 96 },
           { kind: 'skill', id: 'discipline', min: 80 },
           { kind: 'skill', id: 'finance', min: 40 },
         ],
@@ -321,7 +321,7 @@ export const LEGAL: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'legal', weeks: 144 },
+          { kind: 'roleTenure', roleId: 'associate-attorney', weeks: 48 },
           { kind: 'skill', id: 'negotiation', min: 45 },
         ],
       },
@@ -336,7 +336,7 @@ export const LEGAL: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'legal', weeks: 240 },
+          { kind: 'roleTenure', roleId: 'attorney', weeks: 72 },
           { kind: 'skill', id: 'negotiation', min: 60 },
           { kind: 'skill', id: 'charisma', min: 40 },
         ],
@@ -352,7 +352,7 @@ export const LEGAL: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'legal', weeks: 336 },
+          { kind: 'roleTenure', roleId: 'senior-counsel', weeks: 96 },
           { kind: 'skill', id: 'negotiation', min: 78 },
           { kind: 'skill', id: 'charisma', min: 55 },
         ],
@@ -400,7 +400,7 @@ export const BUSINESS: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'business', weeks: 120 },
+          { kind: 'roleTenure', roleId: 'associate', weeks: 48 },
           { kind: 'skill', id: 'finance', min: 45 },
           { kind: 'skill', id: 'negotiation', min: 35 },
         ],
@@ -432,7 +432,7 @@ export const BUSINESS: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'business', weeks: 288 },
+          { kind: 'roleTenure', roleId: 'director-fin', weeks: 84 },
           { kind: 'skill', id: 'finance', min: 78 },
           { kind: 'skill', id: 'leadership', min: 62 },
         ],
@@ -499,7 +499,7 @@ export const CREATIVE: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'creative', weeks: 144 },
+          { kind: 'roleTenure', roleId: 'designer', weeks: 48 },
           { kind: 'skill', id: 'charisma', min: 48 },
           { kind: 'skill', id: 'discipline', min: 35 },
         ],
@@ -515,7 +515,7 @@ export const CREATIVE: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'creative', weeks: 240 },
+          { kind: 'roleTenure', roleId: 'art-director', weeks: 72 },
           { kind: 'skill', id: 'charisma', min: 65 },
           { kind: 'skill', id: 'discipline', min: 50 },
         ],
@@ -531,7 +531,7 @@ export const CREATIVE: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'creative', weeks: 336 },
+          { kind: 'roleTenure', roleId: 'creative-lead', weeks: 96 },
           { kind: 'skill', id: 'charisma', min: 80 },
           { kind: 'skill', id: 'discipline', min: 62 },
         ],
@@ -586,7 +586,7 @@ export const PUBLIC: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'public', weeks: 168 },
+          { kind: 'roleTenure', roleId: 'public-supervisor', weeks: 48 },
           { kind: 'skill', id: 'discipline', min: 45 },
           { kind: 'skill', id: 'fitness', min: 30 },
         ],
@@ -602,7 +602,7 @@ export const PUBLIC: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'public', weeks: 264 },
+          { kind: 'roleTenure', roleId: 'public-manager', weeks: 72 },
           { kind: 'skill', id: 'discipline', min: 62 },
           { kind: 'skill', id: 'fitness', min: 45 },
         ],
@@ -618,7 +618,7 @@ export const PUBLIC: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'public', weeks: 384 },
+          { kind: 'roleTenure', roleId: 'senior-official', weeks: 96 },
           { kind: 'skill', id: 'discipline', min: 80 },
           { kind: 'skill', id: 'fitness', min: 60 },
         ],
@@ -666,7 +666,7 @@ export const ACADEMIA: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'academia', weeks: 192 },
+          { kind: 'roleTenure', roleId: 'lecturer', weeks: 60 },
           { kind: 'skill', id: 'discipline', min: 45 },
           { kind: 'skill', id: 'charisma', min: 40 },
         ],
@@ -682,7 +682,7 @@ export const ACADEMIA: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'academia', weeks: 288 },
+          { kind: 'roleTenure', roleId: 'assistant-prof', weeks: 84 },
           { kind: 'skill', id: 'discipline', min: 62 },
           { kind: 'skill', id: 'charisma', min: 52 },
         ],
@@ -698,7 +698,7 @@ export const ACADEMIA: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'academia', weeks: 432 },
+          { kind: 'roleTenure', roleId: 'associate-prof', weeks: 96 },
           { kind: 'skill', id: 'discipline', min: 80 },
           { kind: 'skill', id: 'charisma', min: 68 },
         ],
@@ -755,7 +755,7 @@ export const SERVICE: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'service', weeks: 120 },
+          { kind: 'roleTenure', roleId: 'service-supervisor', weeks: 48 },
           { kind: 'skill', id: 'charisma', min: 40 },
           { kind: 'skill', id: 'discipline', min: 30 },
         ],
@@ -771,7 +771,7 @@ export const SERVICE: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'service', weeks: 216 },
+          { kind: 'roleTenure', roleId: 'store-manager', weeks: 72 },
           { kind: 'skill', id: 'charisma', min: 58 },
           { kind: 'skill', id: 'discipline', min: 45 },
         ],
@@ -787,7 +787,7 @@ export const SERVICE: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'service', weeks: 336 },
+          { kind: 'roleTenure', roleId: 'regional-manager', weeks: 96 },
           { kind: 'skill', id: 'charisma', min: 74 },
           { kind: 'skill', id: 'discipline', min: 60 },
         ],
@@ -850,7 +850,7 @@ export const LABOR: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'labor', weeks: 168 },
+          { kind: 'roleTenure', roleId: 'foreman', weeks: 48 },
           { kind: 'skill', id: 'fitness', min: 45 },
           { kind: 'skill', id: 'discipline', min: 30 },
         ],
@@ -866,7 +866,7 @@ export const LABOR: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'labor', weeks: 264 },
+          { kind: 'roleTenure', roleId: 'site-supervisor', weeks: 72 },
           { kind: 'skill', id: 'fitness', min: 60 },
           { kind: 'skill', id: 'discipline', min: 45 },
         ],
@@ -882,7 +882,7 @@ export const LABOR: FieldLadder = {
       gate: {
         kind: 'allOf',
         reqs: [
-          { kind: 'fieldExp', field: 'labor', weeks: 384 },
+          { kind: 'roleTenure', roleId: 'contractor', weeks: 96 },
           { kind: 'skill', id: 'fitness', min: 76 },
           { kind: 'skill', id: 'discipline', min: 60 },
         ],

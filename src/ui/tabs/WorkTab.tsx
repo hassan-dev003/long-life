@@ -7,8 +7,8 @@
  * its requirement. Past and future rungs stay hidden.
  */
 import { useGameStore } from '../../store/gameStore';
-import { meets, requirementProgress } from '../../engine/eligibility';
-import { currentRole, nextPromotion } from '../../engine/selectors';
+import { meets } from '../../engine/eligibility';
+import { currentRole, nextPromotion, promotionProgress } from '../../engine/selectors';
 import { LADDERS, ladderOfRole, type FieldLadder, type RoleDef } from '../../content/careers';
 import { moneyShort } from '../../util/money';
 import { fmt1 } from '../../util/format';
@@ -46,7 +46,7 @@ export function WorkTab() {
             <div className="card-desc">
               Next promotion: <strong>{promo.role.title}</strong>
             </div>
-            <ProgressBar pct={requirementProgress(game, promo.role.gate) * 100} />
+            <ProgressBar pct={(promotionProgress(game) ?? 0) * 100} />
             {promo.result.ok ? (
               <Button variant="primary" block onClick={() => applyForJob(promo.role.id)}>
                 Promote → {promo.role.title}

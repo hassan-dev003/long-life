@@ -5,10 +5,10 @@
 import { TUNING } from '../config/tuning';
 import { clampMoney } from '../util/money';
 import { ROLE_BY_ID, ladderOfRole, type RoleDef } from '../content/careers';
-import { meets, type MeetsResult } from './eligibility';
+import { meets, requirementProgress, type MeetsResult } from './eligibility';
 import { computeRunMods, weeklyInterest, weeklyUpkeep, type UpkeepBreakdown } from './economy';
 import { defOf, valuation } from './business';
-import type { GameState } from '../state/types';
+import type { GameState, Requirement } from '../state/types';
 
 const MONTH_ABBR = [
   'Jan',
@@ -77,6 +77,34 @@ export function nextPromotion(
   const next = ladder.roles[idx + 1];
   if (!next) return null; // at the top
   return { role: next, result: meets(s, next.gate) };
+}
+
+/** The tenure (weeks) the next promotion demands in the *current* role, if any. */
+function tenureWeeksFor(req: Requirement, roleId: string): number | undefined {
+  if (req.kind === 'roleTenure') return req.roleId === roleId ? req.weeks : undefined;
+  if (req.kind === 'allOf' || req.kind === 'anyOf') {
+    for (const r of req.reqs) {
+      const w = tenureWeeksFor(r, roleId);
+      if (w !== undefined) return w;
+    }
+  }
+  return undefined;
+}
+
+/**
+ * Progress toward the next promotion, in [0, 1] — what the Work card's bar shows.
+ * When the next role demands time served in the current role (the usual case),
+ * this is simply weeks-in-role / weeks-required: it resets to zero on every
+ * promotion and fills smoothly, however many years the role takes. Roles gated on
+ * skills/credentials alone (no tenure) fall back to overall requirement progress.
+ */
+export function promotionProgress(s: GameState): number | null {
+  if (!s.career.roleId) return null;
+  const promo = nextPromotion(s);
+  if (!promo) return null;
+  const weeks = tenureWeeksFor(promo.role.gate, s.career.roleId);
+  if (weeks !== undefined) return Math.min(1, s.career.roleTenure / weeks);
+  return requirementProgress(s, promo.role.gate);
 }
 
 /** Purchases draw from cash-in-hand only — bank savings must be withdrawn first. */
