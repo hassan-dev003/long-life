@@ -59,7 +59,7 @@ export function LiveTab() {
               key={a.id}
               className="act"
               disabled={blocked || unaffordable}
-              title={unaffordable ? 'Not enough cash (withdraw from bank first)' : undefined}
+              title={unaffordable ? 'Not enough cash' : undefined}
               onClick={() => advance(activity(a.id))}
             >
               <span className="act-emoji">{a.emoji}</span>

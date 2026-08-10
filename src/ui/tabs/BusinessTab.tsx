@@ -136,7 +136,7 @@ function CatalogEntry({ def, game }: { def: BusinessDef; game: GameState }) {
   const gate = meets(game, def.req);
   const affordable = game.money.cash >= def.cost;
   const canBuy = gate.ok && affordable;
-  const reason = !gate.ok ? gate.reason : !affordable ? 'Not enough cash (withdraw first)' : undefined;
+  const reason = !gate.ok ? gate.reason : !affordable ? 'Not enough cash' : undefined;
 
   return (
     <Card

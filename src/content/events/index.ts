@@ -1,17 +1,17 @@
 /**
- * Event registry (M1 seed set — CONTENT_DATA_SPEC §11, GDD §10).
+ * Event registry (CONTENT_DATA_SPEC §11, GDD §10).
  *
- * Each event declares eligibility + a state-weighted `weight`, and is either an
- * `outcome` (applies immediately) or a `choice` (opens a blocking decision modal).
- * `apply` mutates the tick's draft in place via the state/mutations helpers.
+ * Events are **decision events only** — each opens a blocking modal that asks the
+ * player to make a call. There is no stream of small background outcomes; the tick
+ * fires nothing unless it's a choice worth the player's attention. `apply` mutates
+ * the tick's draft in place via the state/mutations helpers.
  *
  * `Rng` is imported type-only, so content carries no runtime dependency on engine.
  */
 import type { GameState, Severity, TraitId } from '../../state/types';
 import type { Rng } from '../../engine/rng';
-import { addHealth, addHappy, earn, addCash, pushLog } from '../../state/mutations';
+import { addHealth, addHappy, addCash, pushLog } from '../../state/mutations';
 import { SUBSCRIPTION_BY_ID } from '../lifestyle';
-import { ROLE_BY_ID } from '../careers';
 
 export type EventCategory = 'health' | 'finance' | 'career' | 'social' | 'absurd';
 
@@ -40,115 +40,13 @@ export function hasInsurance(s: GameState): boolean {
   return s.lifestyle.subscriptions.some((id) => SUBSCRIPTION_BY_ID[id]?.insurance);
 }
 
-function isEmployed(s: GameState): boolean {
-  return s.career.roleId !== null;
-}
-
-function roleStress(s: GameState): number {
-  const role = s.career.roleId ? ROLE_BY_ID[s.career.roleId] : undefined;
-  return role ? role.stress.h + role.stress.hp : 0;
-}
-
 function hasTrait(s: GameState, t: TraitId): boolean {
   return s.traits.includes(t);
 }
 
-// ── the M1 registry ───────────────────────────────────────────────────────────
+// ── the registry (decision events only) ───────────────────────────────────────
 
 export const EVENTS: EventDef[] = [
-  {
-    id: 'found-cash',
-    category: 'finance',
-    severity: 'minor',
-    eligible: () => true,
-    weight: () => 1,
-    kind: 'outcome',
-    apply: (s) => {
-      earn(s, 200);
-      addHappy(s, 2);
-      pushLog(s, 'event', 'You found $200 on the sidewalk. Lucky day.');
-    },
-  },
-  {
-    id: 'common-cold',
-    category: 'health',
-    severity: 'minor',
-    eligible: () => true,
-    weight: (s) => (hasTrait(s, 'iron-constitution') ? 0.5 : 1),
-    kind: 'outcome',
-    apply: (s) => {
-      addHealth(s, -6);
-      addHappy(s, -2);
-      pushLog(s, 'event', 'You caught a cold. Rough week.');
-    },
-  },
-  {
-    id: 'friend-wedding',
-    category: 'social',
-    severity: 'minor',
-    eligible: () => true,
-    weight: () => 1,
-    kind: 'outcome',
-    apply: (s) => {
-      addCash(s, -350);
-      addHappy(s, 9);
-      pushLog(s, 'event', "A friend's wedding — you spent on a gift but had a wonderful time.");
-    },
-  },
-  {
-    id: 'car-trouble',
-    category: 'finance',
-    severity: 'minor',
-    eligible: () => true,
-    weight: (s) => (hasTrait(s, 'frugality') ? 0.7 : 1),
-    kind: 'outcome',
-    apply: (s) => {
-      addCash(s, -420);
-      addHappy(s, -3);
-      pushLog(s, 'event', 'Car trouble. An unexpected repair bill.');
-    },
-  },
-  {
-    id: 'llama-inheritance',
-    category: 'absurd',
-    severity: 'minor',
-    eligible: () => true,
-    weight: () => 0.4,
-    kind: 'outcome',
-    apply: (s) => {
-      earn(s, 1_200);
-      addHappy(s, 6);
-      pushLog(
-        s,
-        'event',
-        'A distant relative left you a small llama farm. You sold the llamas — mostly.',
-      );
-    },
-  },
-  {
-    id: 'surprise-layoff',
-    category: 'career',
-    severity: 'major',
-    eligible: (s) => isEmployed(s),
-    // Higher stress → more likely; senior salary (a proxy for seniority) → less likely.
-    weight: (s) => {
-      const role = s.career.roleId ? ROLE_BY_ID[s.career.roleId] : undefined;
-      const seniority = role ? Math.min(1, role.salaryPerWeek / 25000) : 0;
-      return 1 + roleStress(s) * 0.6 - seniority * 0.8;
-    },
-    kind: 'outcome',
-    apply: (s) => {
-      const role = s.career.roleId ? ROLE_BY_ID[s.career.roleId] : undefined;
-      s.career.roleId = null;
-      s.career.roleTenure = 0;
-      addHappy(s, -12);
-      pushLog(
-        s,
-        'career',
-        `Surprise layoff — you lost your job${role ? ` as ${role.title}` : ''}.`,
-      );
-    },
-  },
   {
     id: 'medical-scare',
     category: 'health',

@@ -8,7 +8,7 @@
  *   4. Every role is registered and maps back to its ladder.
  */
 import { describe, it, expect } from 'vitest';
-import { LADDERS, ENTRY_JOBS, ROLE_BY_ID, ladderOfRole } from './careers';
+import { LADDERS, ROLE_BY_ID, ladderOfRole } from './careers';
 import type { Requirement, SkillId } from '../state/types';
 
 /** Every skill id referenced anywhere in a requirement tree. */
@@ -60,9 +60,12 @@ describe('career ladders', () => {
         expect(ladderOfRole(role.id)).toBe(ladder);
       }
     }
-    for (const job of ENTRY_JOBS) {
-      expect(ROLE_BY_ID[job.id]).toBe(job);
-      expect(ladderOfRole(job.id)).toBeUndefined(); // standalone, no ladder above
+  });
+
+  it('open Service and Labor with an always-available entry rung', () => {
+    for (const field of ['service', 'labor'] as const) {
+      const ladder = LADDERS.find((l) => l.field === field)!;
+      expect(ladder.roles[0]!.gate).toEqual({ kind: 'always' });
     }
   });
 });

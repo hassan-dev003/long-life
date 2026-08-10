@@ -708,18 +708,27 @@ export const ACADEMIA: FieldLadder = {
   ],
 };
 
-/** Service — the hospitality/retail management track above the entry jobs. */
+/** Service — an always-open entry job rising into hospitality/retail management. */
 export const SERVICE: FieldLadder = {
   field: 'service',
   name: 'Service & Hospitality',
   roles: [
+    {
+      id: 'service-worker',
+      field: 'service',
+      title: 'Service Worker',
+      salaryPerWeek: 560,
+      stress: { h: 0.4, hp: 1.0 },
+      gate: ALWAYS, // the universal no-education entry job
+      skillGain: { charisma: S },
+    },
     {
       id: 'shift-lead',
       field: 'service',
       title: 'Shift Lead',
       salaryPerWeek: 900,
       stress: { h: 0.4, hp: 1.0 },
-      gate: { kind: 'fieldExp', field: 'service', weeks: 24 },
+      gate: { kind: 'roleTenure', roleId: 'service-worker', weeks: 24 },
       skillGain: { charisma: P, discipline: S },
     },
     {
@@ -788,11 +797,20 @@ export const SERVICE: FieldLadder = {
   ],
 };
 
-/** Labor — the skilled-trades track, entered via a trade cert or hours on the job. */
+/** Labor — an always-open entry job rising through the skilled trades. */
 export const LABOR: FieldLadder = {
   field: 'labor',
   name: 'Skilled Trades',
   roles: [
+    {
+      id: 'laborer',
+      field: 'labor',
+      title: 'Laborer',
+      salaryPerWeek: 640,
+      stress: { h: 0.9, hp: 0.8 },
+      gate: ALWAYS, // the universal no-education entry job
+      skillGain: { fitness: S },
+    },
     {
       id: 'tradesperson',
       field: 'labor',
@@ -803,7 +821,7 @@ export const LABOR: FieldLadder = {
         kind: 'anyOf',
         reqs: [
           { kind: 'credential', id: 'cert:trade' },
-          { kind: 'fieldExp', field: 'labor', weeks: 48 },
+          { kind: 'roleTenure', roleId: 'laborer', weeks: 48 },
         ],
       },
       skillGain: { fitness: P, discipline: S },
@@ -874,16 +892,12 @@ export const LABOR: FieldLadder = {
   ],
 };
 
-/** Entry-tier fallback jobs — no education; always available (the universal fallback). */
-export const ENTRY_JOBS: RoleDef[] = [
-  { id: 'dishwasher', field: 'service', title: 'Dishwasher', salaryPerWeek: 500, stress: { h: 0.5, hp: 1.0 }, gate: ALWAYS, skillGain: { discipline: S } },
-  { id: 'cashier', field: 'service', title: 'Retail Cashier', salaryPerWeek: 560, stress: { h: 0.3, hp: 1.1 }, gate: ALWAYS, skillGain: { charisma: S } },
-  { id: 'packer', field: 'labor', title: 'Warehouse Packer', salaryPerWeek: 640, stress: { h: 1.0, hp: 0.8 }, gate: ALWAYS, skillGain: { fitness: S } },
-  { id: 'driver', field: 'labor', title: 'Rideshare Driver', salaryPerWeek: 700, stress: { h: 0.6, hp: 0.9 }, gate: ALWAYS, skillGain: { fitness: S } },
-  { id: 'barista', field: 'service', title: 'Barista', salaryPerWeek: 560, stress: { h: 0.4, hp: 0.8 }, gate: ALWAYS, skillGain: { charisma: S } },
-];
-
-/** Every field ladder, ordered for the job board. */
+/**
+ * Every field ladder, ordered for the job board. Service and Labor open with an
+ * always-available entry job; the professional fields open with an education lock.
+ * The Work tab shows exactly one card per field: your current role there, or the
+ * field's entry rung if you don't hold one.
+ */
 export const LADDERS: FieldLadder[] = [
   TECH,
   MEDICAL,
@@ -896,11 +910,10 @@ export const LADDERS: FieldLadder[] = [
   LABOR,
 ];
 
-/** Flat map of every role in the game (ladders + entry jobs), keyed by id. */
+/** Flat map of every role in the game, keyed by id. */
 export const ROLE_BY_ID: Record<string, RoleDef> = (() => {
   const map: Record<string, RoleDef> = {};
   for (const ladder of LADDERS) for (const role of ladder.roles) map[role.id] = role;
-  for (const job of ENTRY_JOBS) map[job.id] = job;
   return map;
 })();
 

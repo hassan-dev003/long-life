@@ -37,9 +37,10 @@ export const TUNING = {
     [0, 0.0012],
   ] as const satisfies readonly BankTier[],
 
-  // Events (GDD §10.2)
-  WEEKLY_EVENT_CHANCE: 0.15,
-  // Severity bucket weights, biased toward minor (minor common, major rare, catastrophic very rare).
+  // Events (GDD §10.2). Only decision events fire, so this is kept low — a big
+  // choice should be an occasional interruption, not a near-weekly one.
+  WEEKLY_EVENT_CHANCE: 0.03,
+  // Severity bucket weights among the decision events that are eligible.
   SEVERITY_WEIGHTS: { minor: 0.8, major: 0.18, catastrophic: 0.02 } as const,
 
   // Business (GDD §7) — the Team-Morale model

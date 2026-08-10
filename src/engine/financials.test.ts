@@ -22,7 +22,7 @@ describe('financials selector', () => {
   it('sums salary + interest as income and upkeep as costs', () => {
     let s = freshLife('normal-life', [], 1);
     s.money.cash = 10_000;
-    s = takeJob(s, 'barista').state; // 560/wk
+    s = takeJob(s, 'service-worker').state; // 560/wk
     s = toggleSubscription(s, 'gym'); // 25/wk upkeep
     const fin = financials(s);
     expect(fin.salary).toBe(560);

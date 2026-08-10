@@ -37,10 +37,10 @@ describe('tick — core loop', () => {
   });
 
   it('pays salary when working an entry job', () => {
-    let s = takeJob(S(), 'dishwasher').state;
+    let s = takeJob(S(), 'service-worker').state;
     const cashBefore = s.money.cash;
     s = tick(s, work());
-    expect(s.money.cash).toBeGreaterThan(cashBefore); // +500 salary − upkeep/food
+    expect(s.money.cash).toBeGreaterThan(cashBefore); // +560 salary − upkeep/food
     expect(s.career.roleTenure).toBe(1);
     expect(s.career.fieldExp.service).toBe(1);
   });

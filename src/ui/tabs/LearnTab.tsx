@@ -30,7 +30,7 @@ function ProgramCard({ program, major }: { program: EducationProgram; major: Maj
   const reason = !gate.ok
     ? gate.reason
     : !affordable
-      ? 'Not enough cash (withdraw from bank first)'
+      ? 'Not enough cash'
       : undefined;
 
   return (

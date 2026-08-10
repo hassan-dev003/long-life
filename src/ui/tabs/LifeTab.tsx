@@ -98,7 +98,7 @@ export function LifeTab() {
                 <Button
                   block
                   disabled={!canAfford}
-                  title={!canAfford ? 'Not enough cash (withdraw from bank first)' : undefined}
+                  title={!canAfford ? 'Not enough cash' : undefined}
                   onClick={() => chooseClothes(c.id)}
                 >
                   Buy
@@ -134,7 +134,7 @@ export function LifeTab() {
                 variant={active ? 'danger' : 'ghost'}
                 block
                 disabled={!canAfford}
-                title={!canAfford ? 'Not enough cash (withdraw from bank first)' : undefined}
+                title={!canAfford ? 'Not enough cash' : undefined}
                 onClick={() => toggleSub(sub.id)}
               >
                 {active ? 'Cancel' : 'Subscribe'}
