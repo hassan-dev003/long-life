@@ -44,8 +44,7 @@ export function WorkTab() {
         {promo ? (
           <>
             <div className="card-desc">
-              Next promotion: <strong>{promo.role.title}</strong> ·{' '}
-              {moneyShort(promo.role.salaryPerWeek)}/wk
+              Next promotion: <strong>{promo.role.title}</strong>
             </div>
             <ProgressBar pct={requirementProgress(game, promo.role.gate) * 100} />
             {promo.result.ok ? (

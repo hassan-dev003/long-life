@@ -6,7 +6,7 @@
 import { useState } from 'react';
 import './ui/app.css';
 import { useGameStore, type TabId } from './store/gameStore';
-import { clockDisplay, netWorth } from './engine/selectors';
+import { clockDisplay } from './engine/selectors';
 import { StatMeter, MoneyValue, Modal, Button } from './ui/components';
 import { StartScreen } from './ui/StartScreen';
 import { Modals } from './ui/Modals';
@@ -92,8 +92,11 @@ function TopBar() {
         <ResetLife />
       </div>
       <div className="hero">
-        <span className="hero-label">Net Worth</span>
-        <MoneyValue value={netWorth(game)} className="hero-value" />
+        <span className="hero-label">Cash</span>
+        <MoneyValue value={game.money.cash} className="hero-value" />
+        <span className="hero-sub">
+          bank <MoneyValue value={game.money.bank} />
+        </span>
       </div>
       <div className="stat-row">
         <StatMeter label="Health" icon="❤" value={game.stats.health} color="var(--health)" />

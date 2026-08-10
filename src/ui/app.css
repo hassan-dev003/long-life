@@ -85,6 +85,18 @@
   font-weight: 700;
   color: var(--text-primary);
 }
+.hero-sub {
+  font-size: 12px;
+  color: var(--text-muted);
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+/* the bank figure inside the sub-line inherits the muted, small treatment */
+.hero-sub .money {
+  font-size: 12px;
+  color: var(--text-muted);
+}
 
 .stat-row {
   display: flex;
