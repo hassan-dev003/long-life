@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { freshLife } from '../state/initial';
 import { meets } from './eligibility';
+import { ROLE_BY_ID } from '../content/careers';
 import type { GameState } from '../state/types';
 
 function base(): GameState {
@@ -53,6 +54,27 @@ describe('meets', () => {
       ],
     };
     expect(meets(s, anyOf).ok).toBe(true);
+  });
+
+  it('requires BOTH the cert and the tenure for Tradesperson (not either)', () => {
+    const gate = ROLE_BY_ID.tradesperson!.gate;
+
+    // Cert alone — not enough.
+    const certOnly = base();
+    certOnly.career = { roleId: 'laborer', roleTenure: 0, fieldExp: {} };
+    certOnly.education.credentials.push('cert:trade');
+    expect(meets(certOnly, gate).ok).toBe(false);
+
+    // Tenure alone — not enough.
+    const tenureOnly = base();
+    tenureOnly.career = { roleId: 'laborer', roleTenure: 48, fieldExp: {} };
+    expect(meets(tenureOnly, gate).ok).toBe(false);
+
+    // Both — promotable.
+    const both = base();
+    both.career = { roleId: 'laborer', roleTenure: 48, fieldExp: {} };
+    both.education.credentials.push('cert:trade');
+    expect(meets(both, gate).ok).toBe(true);
   });
 
   it('reports the first unmet requirement in allOf', () => {

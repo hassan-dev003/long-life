@@ -818,7 +818,7 @@ export const LABOR: FieldLadder = {
       salaryPerWeek: 1400,
       stress: { h: 1.0, hp: 0.8 },
       gate: {
-        kind: 'anyOf',
+        kind: 'allOf',
         reqs: [
           { kind: 'credential', id: 'cert:trade' },
           { kind: 'roleTenure', roleId: 'laborer', weeks: 48 },
