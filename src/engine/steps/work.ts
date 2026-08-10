@@ -13,8 +13,8 @@ export function stepWork(s: GameState, ctx: TickCtx): void {
   const role = currentRole(s);
   if (!role) return;
 
-  // Career bookkeeping.
-  s.career.roleTenure += 1;
+  // Career bookkeeping — tenure accrues per role (kept when you switch fields).
+  s.career.roleTenure[role.id] = (s.career.roleTenure[role.id] ?? 0) + 1;
   s.career.fieldExp[role.field] = (s.career.fieldExp[role.field] ?? 0) + 1;
 
   // Stress (a cost; the delta can reduce it but never turns it into a gain).

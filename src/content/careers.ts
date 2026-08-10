@@ -921,3 +921,8 @@ export const ROLE_BY_ID: Record<string, RoleDef> = (() => {
 export function ladderOfRole(roleId: string): FieldLadder | undefined {
   return LADDERS.find((l) => l.roles.some((r) => r.id === roleId));
 }
+
+/** A role's rung index within its ladder (0 = entry), or -1 if unknown. */
+export function roleRank(roleId: string): number {
+  return ladderOfRole(roleId)?.roles.findIndex((r) => r.id === roleId) ?? -1;
+}

@@ -186,8 +186,9 @@ export interface GameState {
   skills: Partial<Record<SkillId, number>>;
   traits: TraitId[];
   career: {
-    roleId: string | null;
-    roleTenure: number; // weeks in current role
+    roleId: string | null; // the role you're actively working right now
+    roleTenure: Partial<Record<string, number>>; // weeks served per role — persists across switches
+    fieldRole: Partial<Record<Field, string>>; // highest role attained per field (your resume point)
     fieldExp: Partial<Record<Field, number>>; // weeks worked per field
   };
   businesses: BusinessInstance[]; // M2

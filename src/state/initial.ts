@@ -10,7 +10,7 @@ import { clampMoney } from '../util/money';
 import { TUNING } from '../config/tuning';
 import type { GameState, PerkId } from './types';
 
-export const SCHEMA_VERSION = 2;
+export const SCHEMA_VERSION = 3;
 
 /**
  * Create a new life. `seed` is optional — pass a fixed number for reproducible
@@ -59,7 +59,7 @@ export function freshLife(
     education: { credentials: [...start.credentials], enrolled: null },
     skills: {},
     traits: [...start.traits],
-    career: { roleId: null, roleTenure: 0, fieldExp: {} },
+    career: { roleId: null, roleTenure: {}, fieldRole: {}, fieldExp: {} },
     businesses: [],
     realEstate: [],
     holdings: {},

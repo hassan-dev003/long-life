@@ -1,15 +1,16 @@
 /**
  * Work — a flat list of jobs, one card per field. Every card has the same shape:
  * title, a field subtitle, then a salary/stress tag row — so cards stay aligned
- * whatever the field name's length. A card shows either the role you hold in that
- * field (with a progress bar toward the next promotion and a promote-in-place
- * button once you qualify) or the field's entry job, activated only when you meet
- * its requirement. Past and future rungs stay hidden.
+ * whatever the field name's length. A field shows one of three states:
+ *   • active   — the role you're working now, with promotion progress + promote.
+ *   • resume   — the highest role you've reached here before (switching resumes it,
+ *                keeping the rung and its saved tenure).
+ *   • entry    — the field's entry job, activated only when you meet its requirement.
  */
 import { useGameStore } from '../../store/gameStore';
 import { meets } from '../../engine/eligibility';
 import { currentRole, nextPromotion, promotionProgress } from '../../engine/selectors';
-import { LADDERS, ladderOfRole, type FieldLadder, type RoleDef } from '../../content/careers';
+import { LADDERS, ladderOfRole, ROLE_BY_ID, type FieldLadder, type RoleDef } from '../../content/careers';
 import { moneyShort } from '../../util/money';
 import { fmt1 } from '../../util/format';
 import { Button, Card, Tag, ProgressBar } from '../components';
@@ -65,7 +66,23 @@ export function WorkTab() {
     );
   }
 
-  /** The card for a field the player doesn't work in: its entry job, gated. */
+  /** A field you've worked before: your highest role there, ready to resume. */
+  function ResumeCard({ ladder, savedRole }: { ladder: FieldLadder; savedRole: RoleDef }) {
+    return (
+      <Card
+        title={savedRole.title}
+        desc={ladder.name}
+        badge={<Tag>reached</Tag>}
+        tags={payStress(savedRole)}
+      >
+        <Button variant="primary" block onClick={() => applyForJob(savedRole.id)}>
+          Switch to this job
+        </Button>
+      </Card>
+    );
+  }
+
+  /** A field you've never worked: its entry job, gated. */
   function EntryCard({ ladder }: { ladder: FieldLadder }) {
     const entry = ladder.roles[0]!;
     const gate = meets(game, entry.gate);
@@ -83,22 +100,26 @@ export function WorkTab() {
     );
   }
 
+  function FieldCard({ ladder }: { ladder: FieldLadder }) {
+    if (currentField === ladder.field) return <CurrentFieldCard ladder={ladder} />;
+    const savedId = game.career.fieldRole[ladder.field];
+    const savedRole = savedId ? ROLE_BY_ID[savedId] : undefined;
+    if (savedRole) return <ResumeCard ladder={ladder} savedRole={savedRole} />;
+    return <EntryCard ladder={ladder} />;
+  }
+
   return (
     <div>
       <h2 className="tab-title">Work</h2>
       <p className="tab-sub">
-        One job per field — take an entry role and earn each promotion in place. Salary is fixed per
-        role and only rises when you’re promoted.
+        One job per field — take an entry role and earn each promotion in place. Switch fields freely;
+        your rank and time served in each are kept for when you return.
       </p>
 
       <div className="grid">
-        {LADDERS.map((ladder) =>
-          currentField === ladder.field ? (
-            <CurrentFieldCard key={ladder.field} ladder={ladder} />
-          ) : (
-            <EntryCard key={ladder.field} ladder={ladder} />
-          ),
-        )}
+        {LADDERS.map((ladder) => (
+          <FieldCard key={ladder.field} ladder={ladder} />
+        ))}
       </div>
     </div>
   );

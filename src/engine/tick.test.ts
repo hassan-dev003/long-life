@@ -41,7 +41,7 @@ describe('tick — core loop', () => {
     const cashBefore = s.money.cash;
     s = tick(s, work());
     expect(s.money.cash).toBeGreaterThan(cashBefore); // +560 salary − upkeep/food
-    expect(s.career.roleTenure).toBe(1);
+    expect(s.career.roleTenure['service-worker']).toBe(1);
     expect(s.career.fieldExp.service).toBe(1);
   });
 

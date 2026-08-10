@@ -61,18 +61,18 @@ describe('meets', () => {
 
     // Cert alone — not enough.
     const certOnly = base();
-    certOnly.career = { roleId: 'laborer', roleTenure: 0, fieldExp: {} };
+    certOnly.career = { roleId: 'laborer', roleTenure: {}, fieldRole: {}, fieldExp: {} };
     certOnly.education.credentials.push('cert:trade');
     expect(meets(certOnly, gate).ok).toBe(false);
 
     // Tenure alone — not enough.
     const tenureOnly = base();
-    tenureOnly.career = { roleId: 'laborer', roleTenure: 48, fieldExp: {} };
+    tenureOnly.career = { roleId: 'laborer', roleTenure: { laborer: 48 }, fieldRole: {}, fieldExp: {} };
     expect(meets(tenureOnly, gate).ok).toBe(false);
 
     // Both — promotable.
     const both = base();
-    both.career = { roleId: 'laborer', roleTenure: 48, fieldExp: {} };
+    both.career = { roleId: 'laborer', roleTenure: { laborer: 48 }, fieldRole: {}, fieldExp: {} };
     both.education.credentials.push('cert:trade');
     expect(meets(both, gate).ok).toBe(true);
   });

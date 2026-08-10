@@ -58,9 +58,26 @@ describe('run persistence', () => {
 
     const loaded = loadRun();
     expect(loaded).not.toBeNull();
-    expect(loaded!.meta.schemaVersion).toBe(2);
+    expect(loaded!.meta.schemaVersion).toBe(3);
     expect(loaded!.money.weeksInDebt).toBe(0);
     expect(loaded!.pendingBankruptcyWarning).toBe(false);
+  });
+
+  it('migrates a v2 save (scalar tenure) to per-role tenure + field standing', () => {
+    // A v2 run held a single roleTenure number for the active role and no fieldRole.
+    const v2 = JSON.parse(JSON.stringify(freshLife('normal-life', [], 1))) as {
+      meta: { schemaVersion: number };
+      career: Record<string, unknown>;
+    };
+    v2.meta.schemaVersion = 2;
+    v2.career = { roleId: 'swe', roleTenure: 30, fieldExp: { tech: 30 } };
+    localStorage.setItem(RUN_KEY, JSON.stringify(v2));
+
+    const loaded = loadRun();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.meta.schemaVersion).toBe(3);
+    expect(loaded!.career.roleTenure).toEqual({ swe: 30 }); // folded into the map
+    expect(loaded!.career.fieldRole).toEqual({ tech: 'swe' }); // resume point seeded
   });
 });
 

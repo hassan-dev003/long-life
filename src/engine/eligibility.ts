@@ -47,7 +47,7 @@ export function meets(state: GameState, req?: Requirement): MeetsResult {
     }
 
     case 'roleTenure': {
-      const have = state.career.roleId === req.roleId ? state.career.roleTenure : 0;
+      const have = state.career.roleTenure[req.roleId] ?? 0;
       const title = ROLE_BY_ID[req.roleId]?.title ?? req.roleId;
       return have >= req.weeks
         ? OK
@@ -114,7 +114,7 @@ export function requirementProgress(state: GameState, req?: Requirement): number
     case 'fieldExp':
       return frac(state.career.fieldExp[req.field] ?? 0, req.weeks);
     case 'roleTenure':
-      return frac(state.career.roleId === req.roleId ? state.career.roleTenure : 0, req.weeks);
+      return frac(state.career.roleTenure[req.roleId] ?? 0, req.weeks);
     case 'skill':
       return frac(state.skills[req.id] ?? 0, req.min);
     case 'trait':

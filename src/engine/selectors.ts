@@ -103,7 +103,7 @@ export function promotionProgress(s: GameState): number | null {
   const promo = nextPromotion(s);
   if (!promo) return null;
   const weeks = tenureWeeksFor(promo.role.gate, s.career.roleId);
-  if (weeks !== undefined) return Math.min(1, s.career.roleTenure / weeks);
+  if (weeks !== undefined) return Math.min(1, (s.career.roleTenure[s.career.roleId] ?? 0) / weeks);
   return requirementProgress(s, promo.role.gate);
 }
 

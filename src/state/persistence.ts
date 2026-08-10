@@ -5,6 +5,7 @@
  */
 import { SCHEMA_VERSION } from './initial';
 import { freshProfile } from './profile';
+import { ROLE_BY_ID } from '../content/careers';
 import type { GameState, Profile } from './types';
 
 export const RUN_KEY = 'longlife.run';
@@ -32,6 +33,26 @@ const RUN_MIGRATIONS: Record<number, Migration> = {
     if (save.pendingBankruptcyWarning === undefined) save.pendingBankruptcyWarning = false;
     const meta = save.meta as Record<string, unknown> | undefined;
     if (meta) meta.schemaVersion = 2;
+    return save;
+  },
+  // v2 → v3: per-role tenure + per-field standing (so switching fields no longer
+  // wipes your progress). Old `roleTenure` was a single number for the active role;
+  // fold it into a { roleId: weeks } map and seed the active field's resume point.
+  2: (save) => {
+    const career = save.career as Record<string, unknown> | undefined;
+    if (career) {
+      const roleId = typeof career.roleId === 'string' ? career.roleId : null;
+      const oldTenure = typeof career.roleTenure === 'number' ? career.roleTenure : 0;
+      if (typeof career.roleTenure !== 'object' || career.roleTenure === null) {
+        career.roleTenure = roleId && oldTenure > 0 ? { [roleId]: oldTenure } : {};
+      }
+      if (typeof career.fieldRole !== 'object' || career.fieldRole === null) {
+        const field = roleId ? ROLE_BY_ID[roleId]?.field : undefined;
+        career.fieldRole = field && roleId ? { [field]: roleId } : {};
+      }
+    }
+    const meta = save.meta as Record<string, unknown> | undefined;
+    if (meta) meta.schemaVersion = 3;
     return save;
   },
 };

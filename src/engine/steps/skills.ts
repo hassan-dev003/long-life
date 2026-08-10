@@ -47,6 +47,7 @@ export function stepSkills(s: GameState, ctx: TickCtx): void {
 
   if (coding >= 30) grant(s, 'shipped-a-feature');
   if (coding >= 55) grant(s, 'owned-a-system');
-  if (role?.id === 'tech-lead' && s.career.roleTenure >= 48) grant(s, 'managed-a-team');
+  if (role?.id === 'tech-lead' && (s.career.roleTenure['tech-lead'] ?? 0) >= 48)
+    grant(s, 'managed-a-team');
   if (leadership >= 80 && (s.career.fieldExp.tech ?? 0) >= 240) grant(s, 'shipped-10m-product');
 }

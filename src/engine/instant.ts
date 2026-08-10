@@ -14,7 +14,7 @@ import { finalize } from './finalize';
 import { pushLog } from '../state/mutations';
 import { moneyShort, clampMoney } from '../util/money';
 import { ALL_PROGRAMS, type EducationProgram } from '../content/education';
-import { ROLE_BY_ID } from '../content/careers';
+import { ROLE_BY_ID, roleRank } from '../content/careers';
 import { EVENT_BY_ID } from '../content/events';
 import { CLOTHES_TIER_BY_ID, SUBSCRIPTION_BY_ID } from '../content/lifestyle';
 import { BUSINESS_BY_ID, startingFieldStat } from '../content/businesses';
@@ -97,18 +97,29 @@ export function takeJob(state: GameState, roleId: string): JobResult {
   if (!role) return { state, ok: false, reason: 'Unknown role' };
   if (state.career.roleId === roleId) return { state, ok: false, reason: 'Already in this role' };
 
-  const gate = meets(state, role.gate);
-  if (!gate.ok) return { state, ok: false, reason: gate.reason };
+  // A role you've already attained in this field can be resumed without re-qualifying
+  // (you keep the rung and its saved tenure); otherwise you must currently meet its gate.
+  const highest = state.career.fieldRole[role.field];
+  const attained = highest !== undefined && roleRank(roleId) <= roleRank(highest);
+  if (!attained) {
+    const gate = meets(state, role.gate);
+    if (!gate.ok) return { state, ok: false, reason: gate.reason };
+  }
+
+  const prev = state.career.roleId ? ROLE_BY_ID[state.career.roleId] : undefined;
+  const isPromotion = !!prev && prev.field === role.field && roleRank(roleId) > roleRank(prev.id);
 
   const s = clone(state);
-  const isPromotion = !!s.career.roleId;
   s.career.roleId = roleId;
-  s.career.roleTenure = 0;
-  pushLog(
-    s,
-    'career',
-    `${isPromotion ? 'Promoted to' : 'Took a job as'} ${role.title} (${moneyShort(role.salaryPerWeek)}/wk).`,
-  );
+  // Tenure persists per role — keep whatever's been served, or start the counter.
+  if (s.career.roleTenure[roleId] === undefined) s.career.roleTenure[roleId] = 0;
+  // Record your standing in this field (highest rung wins).
+  if (highest === undefined || roleRank(roleId) > roleRank(highest)) {
+    s.career.fieldRole[role.field] = roleId;
+  }
+
+  const verb = isPromotion ? 'Promoted to' : attained ? 'Returned to work as' : 'Took a job as';
+  pushLog(s, 'career', `${verb} ${role.title} (${moneyShort(role.salaryPerWeek)}/wk).`);
   return { state: s, ok: true };
 }
 
@@ -116,7 +127,7 @@ export function quitJob(state: GameState): GameState {
   if (!state.career.roleId) return state;
   const s = clone(state);
   s.career.roleId = null;
-  s.career.roleTenure = 0;
+  // Tenure and field standings persist, so the player can resume where they left off.
   pushLog(s, 'career', 'You quit your job.');
   return s;
 }
