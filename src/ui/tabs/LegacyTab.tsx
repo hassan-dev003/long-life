@@ -10,15 +10,16 @@ export function LegacyTab() {
   const game = useGameStore((s) => s.game)!;
   const profile = useGameStore((s) => s.profile);
 
-  // Earned = achieved this run OR banked on the account.
-  const earned = new Set<string>([...game.progress.runAchievements, ...profile.achievements]);
+  // Achievements are per life — earned fresh each run, reset on a new life.
+  const earned = new Set<string>(game.progress.runAchievements);
   const earnedCount = ACHIEVEMENTS.filter((a) => earned.has(a.id)).length;
 
   return (
     <div>
       <h2 className="tab-title">Legacy</h2>
       <p className="tab-sub">
-        What you’ve made of your lives. Achievements and perks persist across runs.
+        What you’ve made of your lives. Achievements are earned fresh each life; perks persist across
+        runs.
       </p>
 
       {/* This life */}
@@ -36,7 +37,10 @@ export function LegacyTab() {
 
       {/* Achievements */}
       <h2 className="tab-title" style={{ fontSize: 15 }}>
-        Achievements <span style={{ color: 'var(--text-muted)' }}>· {earnedCount}/{ACHIEVEMENTS.length}</span>
+        Achievements (this life){' '}
+        <span style={{ color: 'var(--text-muted)' }}>
+          · {earnedCount}/{ACHIEVEMENTS.length}
+        </span>
       </h2>
       <div className="grid" style={{ marginTop: 8 }}>
         {ACHIEVEMENTS.map((a) => {
@@ -83,7 +87,6 @@ export function LegacyTab() {
         <Tag>lives lived {profile.stats.livesLived}</Tag>
         <Tag tone="pos">best net {moneyShort(profile.stats.bestNetWorth)}</Tag>
         <Tag>oldest age {profile.stats.oldestAge}</Tag>
-        <Tag>{profile.achievements.length} banked achievements</Tag>
       </div>
     </div>
   );

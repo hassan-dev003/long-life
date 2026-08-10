@@ -83,16 +83,23 @@ describe('profile persistence', () => {
 });
 
 describe('absorbRun', () => {
-  it('folds newly-earned achievements and running bests into the profile', () => {
+  it('folds running bests into the profile', () => {
     const p = freshProfile();
     const game = freshLife('normal-life', [], 1);
-    game.progress.runAchievements = ['first-job', 'graduate'];
     game.progress.peakNet = 250_000;
 
     const next = absorbRun(p, game, 42);
-    expect(next.achievements).toEqual(expect.arrayContaining(['first-job', 'graduate']));
     expect(next.stats.bestNetWorth).toBe(250_000);
     expect(next.stats.oldestAge).toBe(42);
+  });
+
+  it('does not bank achievements — they are per life', () => {
+    const p = freshProfile();
+    const game = freshLife('normal-life', [], 1);
+    game.progress.runAchievements = ['first-job', 'graduate'];
+
+    const next = absorbRun(p, game, 42);
+    expect(next.achievements).toEqual([]);
   });
 
   it('returns the same object when nothing changed', () => {

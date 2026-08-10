@@ -42,8 +42,7 @@ export function freshLife(
     },
     clock: { totalWeeks: 0 },
     stats: {
-      // Start below the Zen threshold (90) so the achievement must be earned,
-      // and leave headroom to climb through leisure.
+      // Start below full so Zen (both stats at 100) must be earned through leisure.
       health: 80,
       happiness: 80,
       weeksAtZeroHealth: 0,

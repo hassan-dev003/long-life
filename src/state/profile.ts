@@ -18,27 +18,25 @@ export function freshProfile(): Profile {
   };
 }
 
-const uniq = <T>(arr: T[]): T[] => Array.from(new Set(arr));
-
 /**
- * Fold a run's newly-earned achievements and running bests into the Profile.
- * Pure — returns a new Profile (unchanged if nothing new). Called after each
- * committed state change so the account always reflects the latest run.
+ * Fold a run's running bests into the Profile. Pure — returns a new Profile
+ * (unchanged if nothing new). Called after each committed state change so the
+ * account always reflects the latest run.
+ *
+ * Achievements are deliberately **not** banked here: they are a per-life record
+ * that resets with each new life (they live only in GameState.progress). Only
+ * lifetime *stats* (best net worth, oldest age) and goal-earned perks persist.
  */
 export function absorbRun(profile: Profile, game: GameState, ageYears: number): Profile {
-  const achievements = uniq([...profile.achievements, ...game.progress.runAchievements]);
   const bestNetWorth = Math.max(profile.stats.bestNetWorth, game.progress.peakNet);
   const oldestAge = Math.max(profile.stats.oldestAge, ageYears);
 
   const changed =
-    achievements.length !== profile.achievements.length ||
-    bestNetWorth !== profile.stats.bestNetWorth ||
-    oldestAge !== profile.stats.oldestAge;
+    bestNetWorth !== profile.stats.bestNetWorth || oldestAge !== profile.stats.oldestAge;
 
   if (!changed) return profile;
   return {
     ...profile,
-    achievements,
     stats: { ...profile.stats, bestNetWorth, oldestAge },
   };
 }

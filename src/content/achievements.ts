@@ -69,8 +69,8 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     id: 'zen',
     name: 'Zen',
     emoji: '🧘',
-    desc: 'Health and happiness both at 90+.',
-    test: (s) => s.stats.health >= 90 && s.stats.happiness >= 90,
+    desc: 'Health and happiness both at 100.',
+    test: (s) => s.stats.health >= 100 && s.stats.happiness >= 100,
   },
 
   // Career-gate achievements — granted by engine/steps/skills.ts (manual).

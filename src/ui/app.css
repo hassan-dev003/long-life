@@ -257,6 +257,11 @@
   color: var(--text-secondary);
   font-size: 12.5px;
 }
+/* Pin a card's primary action to the bottom so buttons align across a grid row
+   even when cards have different amounts of content above them. */
+.card > .btn.block:last-child {
+  margin-top: auto;
+}
 .card-reason {
   color: var(--warning);
   font-size: 11.5px;

@@ -1,9 +1,10 @@
 /**
- * Work — a flat list of jobs, one card per field. Each card shows either the role
- * you currently hold in that field (with a progress bar toward the next promotion
- * and a promote button when you're ready) or the field's entry job, activated only
- * when you meet its requirement. Past and future rungs stay hidden: you climb a
- * ladder one promotion at a time, in place.
+ * Work — a flat list of jobs, one card per field. Every card has the same shape:
+ * title, a field subtitle, then a salary/stress tag row — so cards stay aligned
+ * whatever the field name's length. A card shows either the role you hold in that
+ * field (with a progress bar toward the next promotion and a promote-in-place
+ * button once you qualify) or the field's entry job, activated only when you meet
+ * its requirement. Past and future rungs stay hidden.
  */
 import { useGameStore } from '../../store/gameStore';
 import { meets, requirementProgress } from '../../engine/eligibility';
@@ -22,7 +23,12 @@ export function WorkTab() {
   const currentField = role ? ladderOfRole(role.id)?.field : undefined;
   const employed = !!role;
 
-  const stressTag = (r: RoleDef) => <Tag tone="neg">−{fmt1(r.stress.h + r.stress.hp)} stress/wk</Tag>;
+  const payStress = (r: RoleDef) => (
+    <>
+      <Tag tone="pos">{moneyShort(r.salaryPerWeek)}/wk</Tag>
+      <Tag tone="neg">−{fmt1(r.stress.h + r.stress.hp)} stress/wk</Tag>
+    </>
+  );
 
   /** The card for the field the player currently works in: role + promotion progress. */
   function CurrentFieldCard({ ladder }: { ladder: FieldLadder }) {
@@ -30,25 +36,18 @@ export function WorkTab() {
     return (
       <Card
         title={role!.title}
+        desc={ladder.name}
         owned
         badge={<Tag tone="pos">current</Tag>}
-        tags={
-          <>
-            <Tag>{ladder.name}</Tag>
-            <Tag tone="pos">{moneyShort(role!.salaryPerWeek)}/wk</Tag>
-            {stressTag(role!)}
-            <Tag>{game.career.roleTenure} wks in role</Tag>
-          </>
-        }
+        tags={payStress(role!)}
       >
         {promo ? (
           <>
-            <div className="biz-bar">
-              <span className="biz-bar-label">
-                → {promo.role.title} ({moneyShort(promo.role.salaryPerWeek)}/wk)
-              </span>
-              <ProgressBar pct={requirementProgress(game, promo.role.gate) * 100} />
+            <div className="card-desc">
+              Next promotion: <strong>{promo.role.title}</strong> ·{' '}
+              {moneyShort(promo.role.salaryPerWeek)}/wk
             </div>
+            <ProgressBar pct={requirementProgress(game, promo.role.gate) * 100} />
             {promo.result.ok ? (
               <Button variant="primary" block onClick={() => applyForJob(promo.role.id)}>
                 Promote → {promo.role.title}
@@ -60,7 +59,7 @@ export function WorkTab() {
         ) : (
           <div className="card-desc">You’re at the top of this ladder.</div>
         )}
-        <Button variant="danger" onClick={resign}>
+        <Button variant="danger" block onClick={resign}>
           Quit job
         </Button>
       </Card>
@@ -72,18 +71,7 @@ export function WorkTab() {
     const entry = ladder.roles[0]!;
     const gate = meets(game, entry.gate);
     return (
-      <Card
-        title={entry.title}
-        locked={!gate.ok}
-        reason={gate.reason}
-        tags={
-          <>
-            <Tag>{ladder.name}</Tag>
-            <Tag tone="pos">{moneyShort(entry.salaryPerWeek)}/wk</Tag>
-            {stressTag(entry)}
-          </>
-        }
-      >
+      <Card title={entry.title} desc={ladder.name} locked={!gate.ok} reason={gate.reason} tags={payStress(entry)}>
         <Button
           variant={gate.ok ? 'primary' : 'ghost'}
           disabled={!gate.ok}
