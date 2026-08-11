@@ -1,7 +1,7 @@
 /** Business — owned operations (grow via Team Morale) and the catalog to buy into. */
 import { useGameStore } from '../../store/gameStore';
 import { meets } from '../../engine/eligibility';
-import { defOf, valuation, competence, businessFlow } from '../../engine/business';
+import { defOf, valuation, competence, businessFlow, staffCapacity } from '../../engine/business';
 import { BUSINESSES, WAGE_TIERS, type WageTier } from '../../content/businesses';
 import { moneyShort } from '../../util/money';
 import { Button, Card, Tag, ProgressBar } from '../components';
@@ -40,6 +40,7 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
   const branchCost = Math.round(def.cost * 0.3);
   const comp = competence(game, b.field);
   const wageTier = activeWageTier(b.wagePerStaff, def.marketWage);
+  const staffCap = staffCapacity(b, def);
 
   const Bar = ({ label, value, help }: { label: string; value: number; help: string }) => (
     <div className="biz-bar" title={help}>
@@ -97,18 +98,7 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
         </div>
       </div>
 
-      {/* Staff & branches */}
-      <div className="biz-control">
-        <span>
-          Staff {b.staff}/{def.staffCap}
-        </span>
-        <Button disabled={b.staff <= 0} onClick={() => layoffBiz(b.id)}>
-          −
-        </Button>
-        <Button disabled={b.staff >= def.staffCap} onClick={() => hireBiz(b.id)}>
-          Hire
-        </Button>
-      </div>
+      {/* Branches — each is a self-contained unit that scales the whole business */}
       <div className="biz-control">
         <span>
           Branches {b.branches}/{def.branchCap}
@@ -118,7 +108,20 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
           title={game.money.cash < branchCost ? 'Not enough cash' : undefined}
           onClick={() => openBizBranch(b.id)}
         >
-          Open ({moneyShort(branchCost)})
+          Open branch ({moneyShort(branchCost)})
+        </Button>
+      </div>
+
+      {/* Staff — an optional revenue boost, hired across all branches */}
+      <div className="biz-control">
+        <span>
+          Staff {b.staff}/{staffCap}
+        </span>
+        <Button disabled={b.staff <= 0} onClick={() => layoffBiz(b.id)}>
+          −
+        </Button>
+        <Button disabled={b.staff >= staffCap} onClick={() => hireBiz(b.id)}>
+          Hire
         </Button>
       </div>
 

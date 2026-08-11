@@ -51,25 +51,38 @@ export function fieldStatMultiplier(stat: FieldStat, value: number): number {
   }
 }
 
+/** A business always runs at least one branch. */
+export const branchCount = (b: BusinessInstance): number => Math.max(1, b.branches);
+
+/** How many staff a business can employ across all its branches. */
+export const staffCapacity = (b: BusinessInstance, def: BusinessDef): number =>
+  branchCount(b) * def.staffCap;
+
 /**
- * Capacity multiplier on revenue (GDD §7.3). Morale sets the baseline (a fully
- * motivated owner-operated shop runs at 1.0); hiring staff and opening branches
- * scale output *beyond* that ceiling — expansion that only pays off once the pay
- * they require is outrun by the revenue they unlock.
+ * Per-branch output multiplier: morale sets the baseline (an owner-run branch at
+ * full morale runs at 1.0), and staffing the branch adds up to BIZ_STAFF_BOOST on
+ * top. Independent of how many branches you run — each branch stands on its own.
  */
 export function capacity(b: BusinessInstance, def: BusinessDef): number {
   const moraleFactor = b.morale / 100;
-  const staffScale = def.staffCap > 0 ? 0.6 * (b.staff / def.staffCap) : 0;
-  return (0.8 + 0.2 * moraleFactor) * (1 + staffScale + 0.5 * b.branches);
+  const cap = staffCapacity(b, def);
+  const staffFactor = cap > 0 ? Math.min(1, b.staff / cap) : 0;
+  return (0.8 + 0.2 * moraleFactor) * (1 + TUNING.BIZ_STAFF_BOOST * staffFactor);
 }
 
+/** Weekly revenue: each branch earns from growth, morale, and staffing; summed. */
 export function weeklyRevenue(b: BusinessInstance, def: BusinessDef): number {
-  const base = def.baseRevenue * (b.growth / 100) * capacity(b, def);
-  return base * fieldStatMultiplier(def.fieldStat, b.fieldStatValue);
+  const perBranch =
+    def.baseRevenue *
+    (b.growth / 100) *
+    capacity(b, def) *
+    fieldStatMultiplier(def.fieldStat, b.fieldStatValue);
+  return branchCount(b) * perBranch;
 }
 
+/** Weekly running cost: each branch's fixed cost, plus payroll across all staff. */
 export function weeklyRunningCost(b: BusinessInstance, def: BusinessDef): number {
-  return def.baseCost + b.staff * b.wagePerStaff + b.branches * def.branchUpkeep;
+  return branchCount(b) * def.baseCost + b.staff * b.wagePerStaff;
 }
 
 /** Weekly profit or loss (revenue − running cost) — negative early. */

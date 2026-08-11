@@ -56,6 +56,9 @@ export const TUNING = {
   // Morale drifts each week by BIZ_MORALE_RATE × (wageRatio − 1): overpaying lifts
   // it, underpaying erodes it, paying the market rate holds it steady.
   BIZ_MORALE_RATE: 3.0,
+  // Fully staffing a branch adds this fraction to its revenue (staff are an optional
+  // boost on top of the owner-run baseline, not a requirement).
+  BIZ_STAFF_BOOST: 0.5,
 
   // Elixir (GDD §12)
   ELIXIR_BASE_PRICE: 5_000_000,

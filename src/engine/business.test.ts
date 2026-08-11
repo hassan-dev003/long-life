@@ -44,7 +44,7 @@ const cafeInstance = (over: Partial<BusinessInstance>): BusinessInstance => ({
   growth: 5,
   morale: 50,
   staff: 0,
-  branches: 0,
+  branches: 1,
   wagePerStaff: cafeDef.marketWage,
   fieldStatValue: 50,
   ...over,
@@ -143,13 +143,36 @@ describe('business lifecycle', () => {
         tier: def.tier,
         growth: 95,
         morale: 90,
-        staff: def.staffCap, // fully staffed
-        branches: 0,
+        staff: def.staffCap, // one branch, fully staffed
+        branches: 1,
         wagePerStaff: def.marketWage, // paying the market rate
         fieldStatValue: 85,
       };
       expect(weeklyNet(mature, def), `${id} should profit when mature + fully staffed`).toBeGreaterThan(0);
     }
+  });
+
+  it('branches scale the business: multiply a profit, multiply a loss', () => {
+    // Profitable, mature, one fully-staffed branch vs. two.
+    const one = cafeInstance({ growth: 95, morale: 90, fieldStatValue: 85, staff: cafeDef.staffCap });
+    const two = cafeInstance({
+      growth: 95,
+      morale: 90,
+      fieldStatValue: 85,
+      branches: 2,
+      staff: cafeDef.staffCap * 2,
+    });
+    const netOne = weeklyNet(one, cafeDef);
+    const netTwo = weeklyNet(two, cafeDef);
+    expect(netOne).toBeGreaterThan(0);
+    expect(netTwo).toBeGreaterThan(netOne); // a second branch adds profit
+    expect(netTwo / netOne).toBeCloseTo(2, 1); // roughly linear
+
+    // Loss-making (immature): a second branch deepens the loss.
+    const lossOne = cafeInstance({ growth: 10, morale: 50, staff: cafeDef.staffCap });
+    const lossTwo = cafeInstance({ growth: 10, morale: 50, branches: 2, staff: cafeDef.staffCap * 2 });
+    expect(weeklyNet(lossOne, cafeDef)).toBeLessThan(0);
+    expect(weeklyNet(lossTwo, cafeDef)).toBeLessThan(weeklyNet(lossOne, cafeDef));
   });
 
   it('valuation rises as the business matures', () => {

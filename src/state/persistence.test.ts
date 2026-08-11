@@ -58,7 +58,7 @@ describe('run persistence', () => {
 
     const loaded = loadRun();
     expect(loaded).not.toBeNull();
-    expect(loaded!.meta.schemaVersion).toBe(3);
+    expect(loaded!.meta.schemaVersion).toBe(4);
     expect(loaded!.money.weeksInDebt).toBe(0);
     expect(loaded!.pendingBankruptcyWarning).toBe(false);
   });
@@ -75,9 +75,25 @@ describe('run persistence', () => {
 
     const loaded = loadRun();
     expect(loaded).not.toBeNull();
-    expect(loaded!.meta.schemaVersion).toBe(3);
+    expect(loaded!.meta.schemaVersion).toBe(4);
     expect(loaded!.career.roleTenure).toEqual({ swe: 30 }); // folded into the map
     expect(loaded!.career.fieldRole).toEqual({ tech: 'swe' }); // resume point seeded
+  });
+
+  it('migrates a v3 save: businesses gain a base branch, profit share dropped', () => {
+    const v3 = JSON.parse(JSON.stringify(freshLife('normal-life', [], 1))) as {
+      meta: { schemaVersion: number };
+      businesses: Record<string, unknown>[];
+    };
+    v3.meta.schemaVersion = 3;
+    v3.businesses = [{ id: 'x', defId: 'cafe', branches: 0, staff: 2, profitSharePct: 0.5 }];
+    localStorage.setItem(RUN_KEY, JSON.stringify(v3));
+
+    const loaded = loadRun();
+    expect(loaded).not.toBeNull();
+    expect(loaded!.meta.schemaVersion).toBe(4);
+    expect(loaded!.businesses[0]!.branches).toBe(1); // 0 extra branches → 1 total
+    expect('profitSharePct' in loaded!.businesses[0]!).toBe(false);
   });
 });
 

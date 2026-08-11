@@ -10,7 +10,7 @@ import { clampMoney } from '../util/money';
 import { TUNING } from '../config/tuning';
 import type { GameState, PerkId } from './types';
 
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
 
 /**
  * Create a new life. `seed` is optional — pass a fixed number for reproducible

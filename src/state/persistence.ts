@@ -55,6 +55,24 @@ const RUN_MIGRATIONS: Record<number, Migration> = {
     if (meta) meta.schemaVersion = 3;
     return save;
   },
+  // v3 → v4: businesses are now built from branches (each its own revenue + cost),
+  // and a business always has at least one. Old `branches` counted *extra* branches
+  // beyond the base, so shift it up by one. Drop the retired profit-share field.
+  3: (save) => {
+    const businesses = save.businesses;
+    if (Array.isArray(businesses)) {
+      for (const biz of businesses) {
+        if (biz && typeof biz === 'object') {
+          const rec = biz as Record<string, unknown>;
+          rec.branches = (typeof rec.branches === 'number' ? rec.branches : 0) + 1;
+          delete rec.profitSharePct;
+        }
+      }
+    }
+    const meta = save.meta as Record<string, unknown> | undefined;
+    if (meta) meta.schemaVersion = 4;
+    return save;
+  },
 };
 
 function migrateRun(raw: Record<string, unknown>): GameState | null {

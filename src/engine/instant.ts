@@ -18,7 +18,7 @@ import { ROLE_BY_ID, roleRank } from '../content/careers';
 import { EVENT_BY_ID } from '../content/events';
 import { CLOTHES_TIER_BY_ID, SUBSCRIPTION_BY_ID } from '../content/lifestyle';
 import { BUSINESS_BY_ID, startingFieldStat } from '../content/businesses';
-import { defOf, valuation } from './business';
+import { defOf, valuation, staffCapacity } from './business';
 import { addCash } from '../state/mutations';
 import type { BusinessInstance, CredentialId, GameState, Major, Requirement } from '../state/types';
 
@@ -261,7 +261,7 @@ export function buyBusiness(state: GameState, defId: string): GameState {
     growth: TUNING.BIZ_GROWTH_START,
     morale: TUNING.BIZ_MORALE_START,
     staff: 0,
-    branches: 0,
+    branches: 1, // the business opens with its first branch
     wagePerStaff: def.marketWage,
     fieldStatValue: startingFieldStat(def.fieldStat),
   });
@@ -269,11 +269,11 @@ export function buyBusiness(state: GameState, defId: string): GameState {
   return s;
 }
 
-/** Hire one more worker (up to the tier's cap) — raises capacity and payroll. */
+/** Hire one more worker (up to staffCap per branch) — a revenue boost + payroll. */
 export function hireStaff(state: GameState, bizId: string): GameState {
   const b = findBiz(state, bizId);
   const def = b && defOf(b);
-  if (!b || !def || b.staff >= def.staffCap) return state;
+  if (!b || !def || b.staff >= staffCapacity(b, def)) return state;
   const s = clone(state);
   findBiz(s, bizId)!.staff += 1;
   return s;
@@ -288,7 +288,10 @@ export function layoffStaff(state: GameState, bizId: string): GameState {
   return s;
 }
 
-/** Open a branch (up to the tier's cap): an upfront capital cost, then weekly upkeep. */
+/**
+ * Open another branch (up to branchCap): an upfront capital cost. Each branch adds
+ * its own revenue and running cost, so it scales the business up or down as-is.
+ */
 export function openBranch(state: GameState, bizId: string): GameState {
   const b = findBiz(state, bizId);
   const def = b && defOf(b);
