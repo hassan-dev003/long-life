@@ -12,16 +12,26 @@ import {
   setBusinessProfitShare,
   acknowledgeGoal,
   acknowledgeWarning,
+  resolveEvent,
 } from './instant';
 import { weeklyNet, valuation } from './business';
 import { BUSINESS_BY_ID } from '../content/businesses';
+import { EVENT_BY_ID } from '../content/events';
 import type { BusinessInstance, GameState } from '../state/types';
+
+/** Keep a simulation running: clear any modal that would otherwise pause the tick. */
+function clearModals(s: GameState): GameState {
+  if (s.pendingEvent) s = resolveEvent(s, EVENT_BY_ID[s.pendingEvent.eventId]?.choices?.[0]?.id ?? '');
+  if (s.pendingGoal) s = acknowledgeGoal(s);
+  if (s.pendingBankruptcyWarning) s = acknowledgeWarning(s);
+  return s;
+}
 
 /** A run with enough cash to buy in, and a competent owner (business degree). */
 function ownerWith(defId: string): GameState {
   let s = freshLife('normal-life', [], 12345);
   s.education.credentials.push('degree:business');
-  s.money.cash += 400_000;
+  s.money.cash += 2_000_000;
   s = buyBusiness(s, defId);
   return s;
 }
@@ -64,8 +74,7 @@ describe('business lifecycle', () => {
     // Isolate business dynamics: keep the owner alive and solvent through the ramp,
     // clearing any blocking modal (a cash top-up can trip the net-worth goal).
     for (let i = 0; i < 200; i++) {
-      if (s.pendingGoal) s = acknowledgeGoal(s);
-      if (s.pendingBankruptcyWarning) s = acknowledgeWarning(s);
+      s = clearModals(s);
       s = tick(s, work());
       s.stats.health = 80;
       s.stats.happiness = 80;
@@ -76,6 +85,56 @@ describe('business lifecycle', () => {
     expect(after.growth).toBeGreaterThan(before.growth);
     expect(after.morale).toBeGreaterThan(before.morale);
     expect(weeklyNet(after, cafeDef)).toBeGreaterThan(netBefore); // loss shrinks / turns to profit
+  });
+
+  it('breaks even within a year on a competent, well-run setup', () => {
+    const def = BUSINESS_BY_ID.ecom!; // a 'business' venture
+    let s = freshLife('normal-life', [], 7);
+    s.education.credentials.push('degree:business'); // competent owner (1.0 growth)
+    s.money.cash += 200_000;
+    s = buyBusiness(s, 'ecom');
+    const id = s.businesses[0]!.id;
+    s = setBusinessWage(s, id, Math.round(def.marketWage * 1.5)); // generous
+    s = setBusinessProfitShare(s, id, 0.25);
+
+    let weeks = 0;
+    let profitable = false;
+    for (let i = 0; i < 60; i++) {
+      s = clearModals(s);
+      s = tick(s, work());
+      s.stats.health = 80;
+      s.stats.happiness = 80;
+      s.money.cash = 2_000_000;
+      weeks++;
+      if (weeklyNet(s.businesses[0]!, def) > 0) {
+        profitable = true;
+        break;
+      }
+    }
+    expect(profitable).toBe(true);
+    expect(weeks).toBeLessThanOrEqual(52); // under a year
+  });
+
+  it('profit sharing reduces the owner’s take on a profitable week', () => {
+    const def = BUSINESS_BY_ID.ecom!;
+    const mature: BusinessInstance = {
+      id: 'x',
+      defId: 'ecom',
+      field: 'business',
+      tier: 'small',
+      growth: 95,
+      morale: 90,
+      staff: 0,
+      branches: 0,
+      wagePerStaff: def.marketWage,
+      profitSharePct: 0,
+      fieldStatValue: 90,
+    };
+    const noShare = weeklyNet(mature, def);
+    const halfShare = weeklyNet({ ...mature, profitSharePct: 0.5 }, def);
+    expect(noShare).toBeGreaterThan(0);
+    expect(halfShare).toBeGreaterThan(0);
+    expect(halfShare).toBeLessThan(noShare); // team's slice comes out of your take
   });
 
   it('valuation rises as the business matures', () => {
@@ -91,8 +150,7 @@ describe('business lifecycle', () => {
     s.businesses[0]!.staff = 5;
     s = setBusinessWage(s, id, 0);
     for (let i = 0; i < 400; i++) {
-      if (s.pendingGoal) s = acknowledgeGoal(s);
-      if (s.pendingBankruptcyWarning) s = acknowledgeWarning(s);
+      s = clearModals(s);
       s = tick(s, work());
       s.stats.health = 80;
       s.stats.happiness = 80;

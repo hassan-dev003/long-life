@@ -235,6 +235,32 @@
 .biz-control > span:first-child {
   flex: 1;
 }
+.biz-flow {
+  margin: 8px 0;
+  padding: 8px 0;
+  border-top: 1px solid var(--border);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+}
+.biz-flow .rowline {
+  padding: 2px 0;
+  border: none;
+}
+.biz-choice-label {
+  margin: 8px 0 4px;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.biz-tiers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.biz-tiers .btn {
+  font-size: 11px;
+  padding: 4px 8px;
+  flex: 1 1 auto;
+}
 
 /* ── Cards & grid ──────────────────────────────────────────────────────────── */
 .grid {

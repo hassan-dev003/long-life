@@ -32,7 +32,15 @@ function advanceStats(
 
   // Morale chases a target set by pay generosity and profit share.
   const wageRatio = def.marketWage > 0 ? b.wagePerStaff / def.marketWage : 1;
-  const moraleTarget = Math.max(0, Math.min(100, 40 + 40 * (wageRatio - 1) + 60 * b.profitSharePct));
+  const moraleTarget = Math.max(
+    0,
+    Math.min(
+      100,
+      TUNING.BIZ_MORALE_BASE +
+        TUNING.BIZ_MORALE_WAGE_WEIGHT * (wageRatio - 1) +
+        TUNING.BIZ_MORALE_SHARE_WEIGHT * b.profitSharePct,
+    ),
+  );
   b.morale = clampStat(b.morale + (moraleTarget - b.morale) * TUNING.MORALE_LERP);
 
   // Field-unique stat.

@@ -5,6 +5,7 @@
  * revenue overtakes cost. Nothing here mutates state; engine/steps/business.ts
  * calls these each tick and applies the results.
  */
+import { TUNING } from '../config/tuning';
 import { BUSINESS_BY_ID, type BusinessDef, type FieldStat } from '../content/businesses';
 import type { BusinessInstance, Field, GameState, Major } from '../state/types';
 
@@ -32,7 +33,7 @@ export function competence(s: GameState, field: Field): number {
       majors.some((m) => c === `degree:${m}` || c === `master:${m}` || c === `phd:${m}`),
     );
   const experienced = (s.career.fieldExp[field] ?? 0) >= 96;
-  return hasMajor || experienced ? 1.0 : 0.5;
+  return hasMajor || experienced ? 1.0 : TUNING.BIZ_COMPETENCE_PENALTY;
 }
 
 /** The field-unique stat's multiplier on revenue (GDD §7.5). */
@@ -71,9 +72,39 @@ export function weeklyRunningCost(b: BusinessInstance, def: BusinessDef): number
   return def.baseCost + b.staff * b.wagePerStaff + b.branches * def.branchUpkeep;
 }
 
-/** Weekly profit or loss (negative early — the startup loss). */
+/** Gross weekly profit (before the team's profit share) — negative early. */
+export function grossProfit(b: BusinessInstance, def: BusinessDef): number {
+  return weeklyRevenue(b, def) - weeklyRunningCost(b, def);
+}
+
+/** The slice of a profitable week handed to the team (0 on a loss). */
+export function profitShareCost(b: BusinessInstance, def: BusinessDef): number {
+  const gross = grossProfit(b, def);
+  return gross > 0 ? gross * b.profitSharePct : 0;
+}
+
+/** The owner's weekly take: gross profit minus the team's profit share. */
 export function weeklyNet(b: BusinessInstance, def: BusinessDef): number {
-  return Math.round(weeklyRevenue(b, def) - weeklyRunningCost(b, def));
+  return Math.round(grossProfit(b, def) - profitShareCost(b, def));
+}
+
+/** Full cash-flow breakdown for one business (for the UI). */
+export interface BusinessFlow {
+  revenue: number;
+  runningCost: number;
+  profitShare: number;
+  net: number;
+}
+export function businessFlow(b: BusinessInstance, def: BusinessDef): BusinessFlow {
+  const revenue = weeklyRevenue(b, def);
+  const runningCost = weeklyRunningCost(b, def);
+  const profitShare = profitShareCost(b, def);
+  return {
+    revenue: Math.round(revenue),
+    runningCost: Math.round(runningCost),
+    profitShare: Math.round(profitShare),
+    net: Math.round(revenue - runningCost - profitShare),
+  };
 }
 
 /** Resale/net-worth value of a business — scales with maturity and morale. */

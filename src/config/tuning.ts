@@ -44,14 +44,19 @@ export const TUNING = {
   SEVERITY_WEIGHTS: { minor: 0.8, major: 0.18, catastrophic: 0.02 } as const,
 
   // Business (GDD §7) — the Team-Morale model
-  GROWTH_BASE: 1.5, // base weekly growth drive at full morale + competence
-  MORALE_LERP: 0.08, // how fast morale (and reputation/inventory) chase their target
+  GROWTH_BASE: 3.0, // base weekly growth drive at full morale + competence (breakeven in ~6mo well-run)
+  MORALE_LERP: 0.12, // how fast morale (and reputation/inventory) chase their target
   ATTRITION_FLOOR: 25, // morale below this risks staff quitting + stalls growth
-  BIZ_GROWTH_START: 5, // a new business opens near zero maturity
+  BIZ_GROWTH_START: 8, // a new business opens near zero maturity
   BIZ_MORALE_START: 50, // …and at neutral morale
+  BIZ_COMPETENCE_PENALTY: 0.7, // growth multiplier when the owner's field doesn't match (1.0 when it does)
   BIZ_NEGLECT_DECAY: 0.5, // growth lost per week while morale is below the floor
   BIZ_TECHDEBT_ACCRUAL: 0.6, // tech debt added per point of growth gained (fast growth → more debt)
   BIZ_TECHDEBT_PAYDOWN: 0.3, // tech debt naturally worked down per week (wins once mature)
+  // Morale target = base + wageWeight*(wageRatio−1) + shareWeight*profitShare, clamped 0–100.
+  BIZ_MORALE_BASE: 55,
+  BIZ_MORALE_WAGE_WEIGHT: 75,
+  BIZ_MORALE_SHARE_WEIGHT: 25,
 
   // Elixir (GDD §12)
   ELIXIR_BASE_PRICE: 5_000_000,

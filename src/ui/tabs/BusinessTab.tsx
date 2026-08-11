@@ -1,10 +1,14 @@
 /** Business — owned operations (grow via Team Morale) and the catalog to buy into. */
 import { useGameStore } from '../../store/gameStore';
 import { meets } from '../../engine/eligibility';
-import { defOf, weeklyNet, valuation, capacity, competence } from '../../engine/business';
-import { BUSINESSES } from '../../content/businesses';
+import { defOf, valuation, competence, businessFlow } from '../../engine/business';
+import {
+  BUSINESSES,
+  WAGE_TIERS,
+  PROFIT_SHARE_TIERS,
+  type WageTier,
+} from '../../content/businesses';
 import { moneyShort } from '../../util/money';
-import { fmt1 } from '../../util/format';
 import { Button, Card, Tag, ProgressBar } from '../components';
 import type { BusinessInstance, GameState } from '../../state/types';
 import type { BusinessDef } from '../../content/businesses';
@@ -14,6 +18,19 @@ const FIELD_STAT_LABEL: Record<string, string> = {
   techDebt: 'Tech Debt',
   inventory: 'Inventory',
 };
+const FIELD_STAT_HELP: Record<string, string> = {
+  reputation: 'Good service lifts revenue. Rises with morale.',
+  techDebt: 'Debt from growing fast drags revenue until the product matures.',
+  inventory: 'Stock-outs cap revenue. Rises with morale.',
+};
+
+/** The wage tier whose ratio the current wage is closest to. */
+function activeWageTier(wage: number, marketWage: number): WageTier {
+  const ratio = marketWage > 0 ? wage / marketWage : 1;
+  return WAGE_TIERS.reduce((best, t) =>
+    Math.abs(t.ratio - ratio) < Math.abs(best.ratio - ratio) ? t : best,
+  );
+}
 
 function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
   const def = defOf(b);
@@ -25,10 +42,19 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
   const sellBiz = useGameStore((s) => s.sellBiz);
   if (!def) return null;
 
-  const net = weeklyNet(b, def);
-  const wageStep = Math.max(10, Math.round(def.marketWage * 0.1));
+  const flow = businessFlow(b, def);
   const branchCost = Math.round(def.cost * 0.3);
   const comp = competence(game, b.field);
+  const wageTier = activeWageTier(b.wagePerStaff, def.marketWage);
+
+  const Bar = ({ label, value, help }: { label: string; value: number; help: string }) => (
+    <div className="biz-bar" title={help}>
+      <span className="biz-bar-label">
+        {label} {Math.round(value)}
+      </span>
+      <ProgressBar pct={value} />
+    </div>
+  );
 
   return (
     <Card
@@ -37,9 +63,9 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
       tags={
         <>
           <Tag>{def.tier}</Tag>
-          <Tag tone={net >= 0 ? 'pos' : 'neg'}>
-            {net >= 0 ? '+' : '−'}
-            {moneyShort(Math.abs(net))}/wk
+          <Tag tone={flow.net >= 0 ? 'pos' : 'neg'}>
+            {flow.net >= 0 ? '+' : '−'}
+            {moneyShort(Math.abs(flow.net))}/wk
           </Tag>
           <Tag tone="info">worth {moneyShort(valuation(b, def))}</Tag>
           <Tag tone={comp >= 1 ? 'pos' : 'neutral'}>
@@ -48,28 +74,42 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
         </>
       }
     >
-      <div className="biz-bar">
-        <span className="biz-bar-label">Growth {Math.round(b.growth)}</span>
-        <ProgressBar pct={b.growth} />
-      </div>
-      <div className="biz-bar">
-        <span className="biz-bar-label">Morale {Math.round(b.morale)}</span>
-        <ProgressBar pct={b.morale} />
-      </div>
+      <Bar label="Growth" value={b.growth} help="Business maturity (0–100). Higher = more of the revenue realized. Climbs each week, faster with owner competence and high morale." />
+      <Bar label="Morale" value={b.morale} help="Team morale (0–100). Set by wage + profit share. Drives growth, capacity, and staff retention." />
       {def.fieldStat !== 'none' && (
-        <div className="biz-bar">
-          <span className="biz-bar-label">
-            {FIELD_STAT_LABEL[def.fieldStat]} {Math.round(b.fieldStatValue)}
-          </span>
-          <ProgressBar pct={b.fieldStatValue} />
-        </div>
+        <Bar
+          label={FIELD_STAT_LABEL[def.fieldStat]!}
+          value={b.fieldStatValue}
+          help={FIELD_STAT_HELP[def.fieldStat]!}
+        />
       )}
 
-      <div className="card-desc">
-        Capacity {fmt1(capacity(b, def) * 100)}% · payroll {moneyShort(b.staff * b.wagePerStaff)}/wk
+      {/* Weekly cash-flow breakdown */}
+      <div className="biz-flow">
+        <div className="rowline">
+          <span>Revenue</span>
+          <span className="mono pos">+{moneyShort(flow.revenue)}</span>
+        </div>
+        <div className="rowline">
+          <span>Running cost{b.staff > 0 ? ` (incl. ${moneyShort(b.staff * b.wagePerStaff)} payroll)` : ''}</span>
+          <span className="mono neg">−{moneyShort(flow.runningCost)}</span>
+        </div>
+        {flow.profitShare > 0 && (
+          <div className="rowline">
+            <span>Profit share to team</span>
+            <span className="mono neg">−{moneyShort(flow.profitShare)}</span>
+          </div>
+        )}
+        <div className="rowline" style={{ fontWeight: 600 }}>
+          <span>Your weekly take</span>
+          <span className={`mono ${flow.net >= 0 ? 'pos' : 'neg'}`}>
+            {flow.net >= 0 ? '+' : '−'}
+            {moneyShort(Math.abs(flow.net))}
+          </span>
+        </div>
       </div>
 
-      {/* Staff */}
+      {/* Staff & branches */}
       <div className="biz-control">
         <span>
           Staff {b.staff}/{def.staffCap}
@@ -81,8 +121,6 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
           Hire
         </Button>
       </div>
-
-      {/* Branches */}
       <div className="biz-control">
         <span>
           Branches {b.branches}/{def.branchCap}
@@ -96,32 +134,32 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
         </Button>
       </div>
 
-      {/* Wage — drives morale vs. the market rate */}
-      <div className="biz-control">
-        <span>
-          Wage {moneyShort(b.wagePerStaff)} (mkt {moneyShort(def.marketWage)})
-        </span>
-        <Button disabled={b.wagePerStaff <= 0} onClick={() => setBizWage(b.id, b.wagePerStaff - wageStep)}>
-          −
-        </Button>
-        <Button onClick={() => setBizWage(b.id, b.wagePerStaff + wageStep)}>+</Button>
+      {/* Wage policy — sets morale vs. the market rate */}
+      <div className="biz-choice-label">Wage — {moneyShort(b.wagePerStaff)}/staff (market {moneyShort(def.marketWage)})</div>
+      <div className="biz-tiers">
+        {WAGE_TIERS.map((t) => (
+          <Button
+            key={t.id}
+            variant={t.id === wageTier.id ? 'primary' : 'ghost'}
+            onClick={() => setBizWage(b.id, Math.round(def.marketWage * t.ratio))}
+          >
+            {t.label}
+          </Button>
+        ))}
       </div>
 
-      {/* Profit share */}
-      <div className="biz-control">
-        <span>Profit share {Math.round(b.profitSharePct * 100)}%</span>
-        <Button
-          disabled={b.profitSharePct <= 0}
-          onClick={() => setBizShare(b.id, b.profitSharePct - 0.05)}
-        >
-          −
-        </Button>
-        <Button
-          disabled={b.profitSharePct >= 1}
-          onClick={() => setBizShare(b.id, b.profitSharePct + 0.05)}
-        >
-          +
-        </Button>
+      {/* Profit share — a slice of profit to the team, for morale */}
+      <div className="biz-choice-label">Profit share to team</div>
+      <div className="biz-tiers">
+        {PROFIT_SHARE_TIERS.map((t) => (
+          <Button
+            key={t.id}
+            variant={Math.abs(t.pct - b.profitSharePct) < 0.001 ? 'primary' : 'ghost'}
+            onClick={() => setBizShare(b.id, t.pct)}
+          >
+            {t.label}
+          </Button>
+        ))}
       </div>
 
       <Button variant="danger" block onClick={() => sellBiz(b.id)}>
@@ -165,8 +203,12 @@ export function BusinessTab() {
     <div>
       <h2 className="tab-title">Business</h2>
       <p className="tab-sub">
-        A new venture starts at a loss. Grow it by matching your expertise and keeping the team happy
-        — pay well and share profit to lift morale, which drives capacity and revenue.
+        A new venture opens at a loss and grows to profit. <strong>Growth</strong> is its maturity —
+        it climbs each week, faster when your education/experience match the field and when
+        <strong> morale</strong> is high. Morale is set by how you <strong>pay</strong> and the{' '}
+        <strong>profit share</strong> you give the team: generous pay and sharing profit lift morale
+        (faster growth, more revenue) but cost you each week. Extract instead and morale erodes,
+        growth stalls, and staff walk.
       </p>
 
       {game.businesses.length > 0 && (
