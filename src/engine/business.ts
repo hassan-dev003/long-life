@@ -72,38 +72,24 @@ export function weeklyRunningCost(b: BusinessInstance, def: BusinessDef): number
   return def.baseCost + b.staff * b.wagePerStaff + b.branches * def.branchUpkeep;
 }
 
-/** Gross weekly profit (before the team's profit share) — negative early. */
-export function grossProfit(b: BusinessInstance, def: BusinessDef): number {
-  return weeklyRevenue(b, def) - weeklyRunningCost(b, def);
-}
-
-/** The slice of a profitable week handed to the team (0 on a loss). */
-export function profitShareCost(b: BusinessInstance, def: BusinessDef): number {
-  const gross = grossProfit(b, def);
-  return gross > 0 ? gross * b.profitSharePct : 0;
-}
-
-/** The owner's weekly take: gross profit minus the team's profit share. */
+/** Weekly profit or loss (revenue − running cost) — negative early. */
 export function weeklyNet(b: BusinessInstance, def: BusinessDef): number {
-  return Math.round(grossProfit(b, def) - profitShareCost(b, def));
+  return Math.round(weeklyRevenue(b, def) - weeklyRunningCost(b, def));
 }
 
 /** Full cash-flow breakdown for one business (for the UI). */
 export interface BusinessFlow {
   revenue: number;
   runningCost: number;
-  profitShare: number;
   net: number;
 }
 export function businessFlow(b: BusinessInstance, def: BusinessDef): BusinessFlow {
   const revenue = weeklyRevenue(b, def);
   const runningCost = weeklyRunningCost(b, def);
-  const profitShare = profitShareCost(b, def);
   return {
     revenue: Math.round(revenue),
     runningCost: Math.round(runningCost),
-    profitShare: Math.round(profitShare),
-    net: Math.round(revenue - runningCost - profitShare),
+    net: Math.round(revenue - runningCost),
   };
 }
 

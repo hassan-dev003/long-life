@@ -263,7 +263,6 @@ export function buyBusiness(state: GameState, defId: string): GameState {
     staff: 0,
     branches: 0,
     wagePerStaff: def.marketWage,
-    profitSharePct: 0,
     fieldStatValue: startingFieldStat(def.fieldStat),
   });
   pushLog(s, 'career', `Opened ${def.name} (−${moneyShort(def.cost)}).`);
@@ -309,15 +308,6 @@ export function setBusinessWage(state: GameState, bizId: string, wage: number): 
   if (!b) return state;
   const s = clone(state);
   findBiz(s, bizId)!.wagePerStaff = Math.max(0, Math.round(wage));
-  return s;
-}
-
-/** Set the profit-share fraction (0..1) paid to the team (raises the morale target). */
-export function setBusinessProfitShare(state: GameState, bizId: string, pct: number): GameState {
-  const b = findBiz(state, bizId);
-  if (!b) return state;
-  const s = clone(state);
-  findBiz(s, bizId)!.profitSharePct = Math.max(0, Math.min(1, pct));
   return s;
 }
 

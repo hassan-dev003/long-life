@@ -2,12 +2,7 @@
 import { useGameStore } from '../../store/gameStore';
 import { meets } from '../../engine/eligibility';
 import { defOf, valuation, competence, businessFlow } from '../../engine/business';
-import {
-  BUSINESSES,
-  WAGE_TIERS,
-  PROFIT_SHARE_TIERS,
-  type WageTier,
-} from '../../content/businesses';
+import { BUSINESSES, WAGE_TIERS, type WageTier } from '../../content/businesses';
 import { moneyShort } from '../../util/money';
 import { Button, Card, Tag, ProgressBar } from '../components';
 import type { BusinessInstance, GameState } from '../../state/types';
@@ -38,7 +33,6 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
   const layoffBiz = useGameStore((s) => s.layoffBiz);
   const openBizBranch = useGameStore((s) => s.openBizBranch);
   const setBizWage = useGameStore((s) => s.setBizWage);
-  const setBizShare = useGameStore((s) => s.setBizShare);
   const sellBiz = useGameStore((s) => s.sellBiz);
   if (!def) return null;
 
@@ -94,12 +88,6 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
           <span>Running cost{b.staff > 0 ? ` (incl. ${moneyShort(b.staff * b.wagePerStaff)} payroll)` : ''}</span>
           <span className="mono neg">−{moneyShort(flow.runningCost)}</span>
         </div>
-        {flow.profitShare > 0 && (
-          <div className="rowline">
-            <span>Profit share to team</span>
-            <span className="mono neg">−{moneyShort(flow.profitShare)}</span>
-          </div>
-        )}
         <div className="rowline" style={{ fontWeight: 600 }}>
           <span>Your weekly take</span>
           <span className={`mono ${flow.net >= 0 ? 'pos' : 'neg'}`}>
@@ -134,28 +122,19 @@ function OwnedBusiness({ b, game }: { b: BusinessInstance; game: GameState }) {
         </Button>
       </div>
 
-      {/* Wage policy — sets morale vs. the market rate */}
-      <div className="biz-choice-label">Wage — {moneyShort(b.wagePerStaff)}/staff (market {moneyShort(def.marketWage)})</div>
+      {/* Wage policy — sets which way morale drifts */}
+      <div className="biz-choice-label">
+        Wage — {moneyShort(b.wagePerStaff)}/staff (market {moneyShort(def.marketWage)}) ·{' '}
+        <span className={wageTier.ratio > 1 ? 'pos' : wageTier.ratio < 1 ? 'neg' : ''}>
+          {wageTier.trend}
+        </span>
+      </div>
       <div className="biz-tiers">
         {WAGE_TIERS.map((t) => (
           <Button
             key={t.id}
             variant={t.id === wageTier.id ? 'primary' : 'ghost'}
             onClick={() => setBizWage(b.id, Math.round(def.marketWage * t.ratio))}
-          >
-            {t.label}
-          </Button>
-        ))}
-      </div>
-
-      {/* Profit share — a slice of profit to the team, for morale */}
-      <div className="biz-choice-label">Profit share to team</div>
-      <div className="biz-tiers">
-        {PROFIT_SHARE_TIERS.map((t) => (
-          <Button
-            key={t.id}
-            variant={Math.abs(t.pct - b.profitSharePct) < 0.001 ? 'primary' : 'ghost'}
-            onClick={() => setBizShare(b.id, t.pct)}
           >
             {t.label}
           </Button>
@@ -208,11 +187,11 @@ export function BusinessTab() {
       <h2 className="tab-title">Business</h2>
       <p className="tab-sub">
         A new venture opens at a loss and grows to profit. <strong>Growth</strong> is its maturity —
-        it climbs each week, faster when your education/experience match the field and when
-        <strong> morale</strong> is high. Morale is set by how you <strong>pay</strong> and the{' '}
-        <strong>profit share</strong> you give the team: generous pay and sharing profit lift morale
-        (faster growth, more revenue) but cost you each week. Extract instead and morale erodes,
-        growth stalls, and staff walk.
+        it climbs each week, faster when your education/experience match the field and when{' '}
+        <strong>morale</strong> is high. Morale is driven by how you <strong>pay</strong>: pay above
+        the market rate and it rises week over week (faster growth, more revenue); underpay and it
+        slips, and far enough down staff walk. Higher pay also means higher payroll — that's the
+        trade.
       </p>
 
       {game.businesses.length > 0 && (

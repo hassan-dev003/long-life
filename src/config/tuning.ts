@@ -53,10 +53,9 @@ export const TUNING = {
   BIZ_NEGLECT_DECAY: 0.5, // growth lost per week while morale is below the floor
   BIZ_TECHDEBT_ACCRUAL: 0.6, // tech debt added per point of growth gained (fast growth → more debt)
   BIZ_TECHDEBT_PAYDOWN: 0.3, // tech debt naturally worked down per week (wins once mature)
-  // Morale target = base + wageWeight*(wageRatio−1) + shareWeight*profitShare, clamped 0–100.
-  BIZ_MORALE_BASE: 55,
-  BIZ_MORALE_WAGE_WEIGHT: 75,
-  BIZ_MORALE_SHARE_WEIGHT: 25,
+  // Morale drifts each week by BIZ_MORALE_RATE × (wageRatio − 1): overpaying lifts
+  // it, underpaying erodes it, paying the market rate holds it steady.
+  BIZ_MORALE_RATE: 3.0,
 
   // Elixir (GDD §12)
   ELIXIR_BASE_PRICE: 5_000_000,

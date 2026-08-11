@@ -9,7 +9,6 @@ import { work } from './actions';
 import {
   buyBusiness,
   setBusinessWage,
-  setBusinessProfitShare,
   acknowledgeGoal,
   acknowledgeWarning,
   resolveEvent,
@@ -47,7 +46,6 @@ const cafeInstance = (over: Partial<BusinessInstance>): BusinessInstance => ({
   staff: 0,
   branches: 0,
   wagePerStaff: cafeDef.marketWage,
-  profitSharePct: 0,
   fieldStatValue: 50,
   ...over,
 });
@@ -66,7 +64,6 @@ describe('business lifecycle', () => {
     let s = ownerWith('cafe');
     const id = s.businesses[0]!.id;
     s = setBusinessWage(s, id, Math.round(cafeDef.marketWage * 1.4));
-    s = setBusinessProfitShare(s, id, 0.4);
     s.money.bank = 5_000_000; // stay solvent through the ramp (pay-upkeep not the point here)
 
     const before = s.businesses[0]!;
@@ -95,7 +92,6 @@ describe('business lifecycle', () => {
     s = buyBusiness(s, 'ecom');
     const id = s.businesses[0]!.id;
     s = setBusinessWage(s, id, Math.round(def.marketWage * 1.5)); // generous
-    s = setBusinessProfitShare(s, id, 0.25);
 
     let weeks = 0;
     let profitable = false;
@@ -115,26 +111,24 @@ describe('business lifecycle', () => {
     expect(weeks).toBeLessThanOrEqual(52); // under a year
   });
 
-  it('profit sharing reduces the owner’s take on a profitable week', () => {
-    const def = BUSINESS_BY_ID.ecom!;
-    const mature: BusinessInstance = {
-      id: 'x',
-      defId: 'ecom',
-      field: 'business',
-      tier: 'small',
-      growth: 95,
-      morale: 90,
-      staff: 0,
-      branches: 0,
-      wagePerStaff: def.marketWage,
-      profitSharePct: 0,
-      fieldStatValue: 90,
+  it('morale drifts by pay alone: up when generous, steady at market, down when underpaid', () => {
+    const drift = (ratio: number) => {
+      let s = ownerWith('cafe');
+      const id = s.businesses[0]!.id;
+      s = setBusinessWage(s, id, Math.round(cafeDef.marketWage * ratio));
+      const before = s.businesses[0]!.morale;
+      for (let i = 0; i < 10; i++) {
+        s = clearModals(s);
+        s = tick(s, work());
+        s.stats.health = 80;
+        s.stats.happiness = 80;
+        s.money.cash = 5_000_000;
+      }
+      return s.businesses[0]!.morale - before;
     };
-    const noShare = weeklyNet(mature, def);
-    const halfShare = weeklyNet({ ...mature, profitSharePct: 0.5 }, def);
-    expect(noShare).toBeGreaterThan(0);
-    expect(halfShare).toBeGreaterThan(0);
-    expect(halfShare).toBeLessThan(noShare); // team's slice comes out of your take
+    expect(drift(1.5)).toBeGreaterThan(0); // generous → climbs
+    expect(drift(1.0)).toBeCloseTo(0); // market rate → holds steady
+    expect(drift(0.5)).toBeLessThan(0); // severely underpaid → falls
   });
 
   it('a mature, fully-staffed business at market rate turns a profit', () => {
@@ -152,7 +146,6 @@ describe('business lifecycle', () => {
         staff: def.staffCap, // fully staffed
         branches: 0,
         wagePerStaff: def.marketWage, // paying the market rate
-        profitSharePct: 0,
         fieldStatValue: 85,
       };
       expect(weeklyNet(mature, def), `${id} should profit when mature + fully staffed`).toBeGreaterThan(0);

@@ -113,7 +113,6 @@ export interface BusinessInstance {
   staff: number;
   branches: number;
   wagePerStaff: number;
-  profitSharePct: number;
   fieldStatValue: number; // reputation / techDebt / inventory
 }
 

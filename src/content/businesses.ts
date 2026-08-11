@@ -57,33 +57,22 @@ export const BUSINESS_BY_ID: Record<string, BusinessDef> = Object.fromEntries(
 
 /**
  * Wage policy presets (the morale benchmark is the business's `marketWage`).
- * Higher pay lifts Team Morale but raises payroll; underpaying erodes morale and,
- * far enough down, drives staff to quit.
+ * Pay sets which way Team Morale drifts each week: generous lifts it moderately,
+ * well paid a little, market rate holds steady, underpaying erodes it. Higher pay
+ * also means higher payroll. The `trend` is a human-readable summary of the drift.
  */
 export interface WageTier {
   id: string;
   label: string;
   ratio: number; // multiple of marketWage
+  trend: string; // what it does to morale
 }
 export const WAGE_TIERS: WageTier[] = [
-  { id: 'severe', label: 'Severely underpaid', ratio: 0.6 },
-  { id: 'under', label: 'Underpaid', ratio: 0.8 },
-  { id: 'market', label: 'Market rate', ratio: 1.0 },
-  { id: 'well', label: 'Well paid', ratio: 1.25 },
-  { id: 'generous', label: 'Generous', ratio: 1.5 },
-];
-
-/** Profit-share presets: a slice of each profitable week handed to the team. */
-export interface ProfitShareTier {
-  id: string;
-  label: string;
-  pct: number; // 0..1
-}
-export const PROFIT_SHARE_TIERS: ProfitShareTier[] = [
-  { id: 'none', label: 'None', pct: 0 },
-  { id: 'small', label: '10%', pct: 0.1 },
-  { id: 'fair', label: '25%', pct: 0.25 },
-  { id: 'generous', label: '50%', pct: 0.5 },
+  { id: 'severe', label: 'Severely underpaid', ratio: 0.5, trend: 'morale falls fast' },
+  { id: 'under', label: 'Underpaid', ratio: 0.75, trend: 'morale slips' },
+  { id: 'market', label: 'Market rate', ratio: 1.0, trend: 'morale holds' },
+  { id: 'well', label: 'Well paid', ratio: 1.25, trend: 'morale rises' },
+  { id: 'generous', label: 'Generous', ratio: 1.5, trend: 'morale climbs fast' },
 ];
 
 /** The starting value of a business's field-unique stat when it opens. */

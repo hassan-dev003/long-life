@@ -257,6 +257,12 @@
   font-size: 11px;
   color: var(--text-muted);
 }
+.biz-choice-label .pos {
+  color: var(--positive);
+}
+.biz-choice-label .neg {
+  color: var(--negative);
+}
 .biz-tiers {
   display: flex;
   flex-wrap: wrap;

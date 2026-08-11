@@ -23,7 +23,6 @@ import {
   layoffStaff,
   openBranch,
   setBusinessWage,
-  setBusinessProfitShare,
   sellBusiness,
   resolveEvent,
   acknowledgeGoal,
@@ -84,7 +83,6 @@ interface GameStore {
   layoffBiz: (bizId: string) => void;
   openBizBranch: (bizId: string) => void;
   setBizWage: (bizId: string, wage: number) => void;
-  setBizShare: (bizId: string, pct: number) => void;
   sellBiz: (bizId: string) => void;
   chooseEvent: (choiceId: string) => void;
   ackGoal: () => void;
@@ -241,12 +239,6 @@ export const useGameStore = create<GameStore>((set, get) => {
       const game = get().game;
       if (!game) return;
       commit(setBusinessWage(game, bizId, wage));
-    },
-
-    setBizShare(bizId, pct) {
-      const game = get().game;
-      if (!game) return;
-      commit(setBusinessProfitShare(game, bizId, pct));
     },
 
     sellBiz(bizId) {

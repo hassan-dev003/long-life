@@ -30,18 +30,10 @@ function advanceStats(
   b.growth = clampStat(b.growth + growthStep);
   if (b.morale < TUNING.ATTRITION_FLOOR) b.growth = clampStat(b.growth - TUNING.BIZ_NEGLECT_DECAY);
 
-  // Morale chases a target set by pay generosity and profit share.
+  // Morale drifts by how you pay: overpay lifts it, underpay erodes it, market
+  // rate holds it steady.
   const wageRatio = def.marketWage > 0 ? b.wagePerStaff / def.marketWage : 1;
-  const moraleTarget = Math.max(
-    0,
-    Math.min(
-      100,
-      TUNING.BIZ_MORALE_BASE +
-        TUNING.BIZ_MORALE_WAGE_WEIGHT * (wageRatio - 1) +
-        TUNING.BIZ_MORALE_SHARE_WEIGHT * b.profitSharePct,
-    ),
-  );
-  b.morale = clampStat(b.morale + (moraleTarget - b.morale) * TUNING.MORALE_LERP);
+  b.morale = clampStat(b.morale + TUNING.BIZ_MORALE_RATE * (wageRatio - 1));
 
   // Field-unique stat.
   switch (def.fieldStat) {
