@@ -7,7 +7,7 @@ import { clampMoney } from '../util/money';
 import { ROLE_BY_ID, ladderOfRole, type RoleDef } from '../content/careers';
 import { meets, requirementProgress, type MeetsResult } from './eligibility';
 import { computeRunMods, weeklyInterest, weeklyUpkeep, type UpkeepBreakdown } from './economy';
-import { defOf, valuation } from './business';
+import { defOf, valuation, weeklyNet } from './business';
 import type { GameState, Requirement } from '../state/types';
 
 const MONTH_ABBR = [
@@ -118,12 +118,21 @@ export function elixirAffordable(s: GameState): boolean {
  * both a working-week and an idle-week net. Uses the same upkeep/interest math the
  * tick does, so the numbers match what actually happens.
  */
+/** One owned business's weekly contribution to cash flow (net can be negative). */
+export interface BusinessLine {
+  id: string;
+  name: string;
+  net: number;
+}
+
 export interface Financials {
   role: RoleDef | null;
   salary: number; // per working week (0 if unemployed)
   interest: number; // projected weekly bank interest at the current balance
+  businesses: BusinessLine[]; // per-business weekly net (profit or loss)
+  businessNet: number; // sum of the business lines
   upkeep: UpkeepBreakdown;
-  totalIncome: number; // salary + interest
+  totalIncome: number; // salary + interest + business net
   totalCosts: number; // upkeep total
   net: number; // totalIncome − totalCosts
 }
@@ -133,8 +142,25 @@ export function financials(s: GameState): Financials {
   const role = currentRole(s);
   const salary = role?.salaryPerWeek ?? 0;
   const interest = weeklyInterest(s.money.bank);
+
+  const businesses: BusinessLine[] = s.businesses.map((b) => {
+    const def = defOf(b);
+    return { id: b.id, name: def?.name ?? b.defId, net: def ? weeklyNet(b, def) : 0 };
+  });
+  const businessNet = businesses.reduce((sum, line) => sum + line.net, 0);
+
   const upkeep = weeklyUpkeep(s, mods.priceMod);
-  const totalIncome = salary + interest;
+  const totalIncome = salary + interest + businessNet;
   const totalCosts = upkeep.total;
-  return { role, salary, interest, upkeep, totalIncome, totalCosts, net: totalIncome - totalCosts };
+  return {
+    role,
+    salary,
+    interest,
+    businesses,
+    businessNet,
+    upkeep,
+    totalIncome,
+    totalCosts,
+    net: totalIncome - totalCosts,
+  };
 }

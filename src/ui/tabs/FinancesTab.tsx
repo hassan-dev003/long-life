@@ -44,6 +44,9 @@ export function FinancesTab() {
           <div className="fin-section">Income</div>
           <Row label={fin.role ? `Salary — ${fin.role.title}` : 'Salary — no job'} value={fin.salary} sign />
           <Row label="Bank interest" value={fin.interest} sign />
+          {fin.businesses.map((b) => (
+            <Row key={b.id} label={`Business — ${b.name}`} value={b.net} sign />
+          ))}
           <div className="rowline fin-subtotal">
             <span>Total income</span>
             <MoneyValue value={fin.totalIncome} sign />

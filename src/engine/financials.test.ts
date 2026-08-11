@@ -1,7 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { freshLife } from '../state/initial';
 import { financials } from './selectors';
-import { takeJob, toggleSubscription, deposit } from './instant';
+import { takeJob, toggleSubscription, deposit, buyBusiness } from './instant';
+import { weeklyNet, defOf } from './business';
 import { tick } from './tick';
 import { work } from './actions';
 import { FOOD_TIER_BY_ID } from '../content/lifestyle';
@@ -29,6 +30,23 @@ describe('financials selector', () => {
     expect(fin.upkeep.subscriptions).toBe(25);
     expect(fin.totalIncome).toBe(560 + fin.interest);
     expect(fin.net).toBe(fin.totalIncome - fin.totalCosts);
+  });
+
+  it('lists each business as its own income line and folds net into income', () => {
+    let s = freshLife('normal-life', [], 1);
+    s.money.cash = 100_000;
+    s = buyBusiness(s, 'vending');
+
+    const fin = financials(s);
+    const b = s.businesses[0]!;
+    const expectedNet = weeklyNet(b, defOf(b)!);
+
+    expect(fin.businesses).toHaveLength(1);
+    expect(fin.businesses[0]!.name).toBe('Vending Route');
+    expect(fin.businesses[0]!.net).toBe(expectedNet);
+    expect(fin.businessNet).toBe(expectedNet);
+    // A fresh business runs at a loss, so it lowers total income.
+    expect(fin.totalIncome).toBe(fin.salary + fin.interest + expectedNet);
   });
 
   it('projects bank interest that matches what a tick actually credits', () => {
