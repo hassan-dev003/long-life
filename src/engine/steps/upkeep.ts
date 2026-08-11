@@ -8,11 +8,12 @@ export function stepUpkeep(s: GameState, ctx: TickCtx): void {
   const upkeep = weeklyUpkeep(s, ctx.mods.priceMod).total;
   if (upkeep <= 0) return;
 
-  // Pay from bank first if the player opted in and cash can't cover it.
-  if (s.banking.payUpkeepFromBank && s.money.cash < upkeep) {
-    const fromBank = Math.min(s.money.bank, upkeep - Math.max(0, s.money.cash));
+  // When opted in, upkeep is drawn straight from the bank (whatever it can cover),
+  // with any shortfall falling to cash. Otherwise it comes from cash.
+  if (s.banking.payUpkeepFromBank) {
+    const fromBank = Math.min(s.money.bank, upkeep);
     s.money.bank = clampMoney(s.money.bank - fromBank);
-    s.money.cash = clampMoney(s.money.cash - (upkeep - fromBank));
+    s.money.cash = clampMoney(s.money.cash - (upkeep - fromBank)); // remainder (may go negative)
   } else {
     s.money.cash = clampMoney(s.money.cash - upkeep); // may go negative (debt)
   }

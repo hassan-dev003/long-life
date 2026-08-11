@@ -199,6 +199,10 @@ function CatalogEntry({ def, game }: { def: BusinessDef; game: GameState }) {
 export function BusinessTab() {
   const game = useGameStore((s) => s.game)!;
 
+  // Don't re-offer a business you already own; it returns to the list if you sell it.
+  const owned = new Set(game.businesses.map((b) => b.defId));
+  const available = BUSINESSES.filter((def) => !owned.has(def.id));
+
   return (
     <div>
       <h2 className="tab-title">Business</h2>
@@ -222,12 +226,16 @@ export function BusinessTab() {
         </>
       )}
 
-      <h3 className="section-title">Open a new business</h3>
-      <div className="grid">
-        {BUSINESSES.map((def) => (
-          <CatalogEntry key={def.id} def={def} game={game} />
-        ))}
-      </div>
+      {available.length > 0 && (
+        <>
+          <h3 className="section-title">Open a new business</h3>
+          <div className="grid">
+            {available.map((def) => (
+              <CatalogEntry key={def.id} def={def} game={game} />
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

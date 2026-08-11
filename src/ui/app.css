@@ -246,6 +246,12 @@
   padding: 2px 0;
   border: none;
 }
+.biz-flow .pos {
+  color: var(--positive);
+}
+.biz-flow .neg {
+  color: var(--negative);
+}
 .biz-choice-label {
   margin: 8px 0 4px;
   font-size: 11px;
