@@ -5,9 +5,8 @@
  * is a purely financial/management system (GDD §7, deliberate departure §7).
  */
 import { TUNING } from '../../config/tuning';
-import { clampMoney } from '../../util/money';
 import { clampStat } from '../../util/clamp';
-import { earn, pushLog } from '../../state/mutations';
+import { receiveIncome, payExpense, pushLog } from '../../state/mutations';
 import { moneyShort } from '../../util/money';
 import { competence, defOf, weeklyNet } from '../business';
 import type { BusinessInstance } from '../../state/types';
@@ -77,8 +76,10 @@ export function stepBusiness(s: GameState, ctx: TickCtx): void {
     if (!def) continue;
     const net = weeklyNet(b, def);
     totalNet += net;
-    if (net >= 0) earn(s, net);
-    else s.money.cash = clampMoney(s.money.cash + net);
+    // Profit counts as income (auto-deposit applies); a loss is an expense (can be
+    // covered from the bank if the player opted in).
+    if (net >= 0) receiveIncome(s, net);
+    else payExpense(s, -net);
     advanceStats(s, b, def, ctx.mods.businessGrowthMod, ctx.rng);
   }
 

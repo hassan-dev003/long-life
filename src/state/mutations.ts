@@ -23,6 +23,41 @@ export function earn(s: GameState, delta: number): void {
   if (delta > 0) s.money.lifetimeEarned = clampMoney(s.money.lifetimeEarned + delta);
 }
 
+/**
+ * Any weekly income (salary, business profit, …): credit it, then auto-deposit the
+ * player's chosen slice into the bank. Routing every income source through here is
+ * what makes the auto-deposit apply to *all* income, not just paychecks.
+ */
+export function receiveIncome(s: GameState, amount: number): void {
+  if (amount <= 0) return;
+  earn(s, amount);
+  const pct = s.banking.autoDepositPct;
+  if (pct > 0) {
+    const move = Math.min(s.money.cash, Math.round((amount * pct) / 100));
+    if (move > 0) {
+      s.money.cash = clampMoney(s.money.cash - move);
+      s.money.bank = clampMoney(s.money.bank + move);
+    }
+  }
+}
+
+/**
+ * Any recurring weekly expense (upkeep, business losses, …): when the player has
+ * opted in, it's drawn from the bank first (then cash); otherwise from cash, which
+ * may go negative. Routing every expense through here makes the toggle cover *all*
+ * automatic expenses, not just lifestyle upkeep.
+ */
+export function payExpense(s: GameState, amount: number): void {
+  if (amount <= 0) return;
+  if (s.banking.payUpkeepFromBank) {
+    const fromBank = Math.min(s.money.bank, amount);
+    s.money.bank = clampMoney(s.money.bank - fromBank);
+    s.money.cash = clampMoney(s.money.cash - (amount - fromBank));
+  } else {
+    s.money.cash = clampMoney(s.money.cash - amount);
+  }
+}
+
 export function addHealth(s: GameState, delta: number): void {
   s.stats.health = clampStat(s.stats.health + delta);
 }

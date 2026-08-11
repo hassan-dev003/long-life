@@ -57,10 +57,10 @@ export function BankTab() {
 
         <Card
           title="Automation"
-          desc="Route part of every paycheck to the bank, and optionally pay weekly upkeep straight from savings."
+          desc="Route part of all income to the bank, and optionally pay all weekly expenses straight from savings."
         >
           <div className="rowline" style={{ borderBottom: 'none' }}>
-            <span>Auto-deposit of each paycheck</span>
+            <span>Auto-deposit of all income</span>
             <span className="mono" style={{ color: 'var(--accent)' }}>
               {autoPct}%
             </span>
@@ -79,7 +79,7 @@ export function BankTab() {
             <Toggle
               on={game.banking.payUpkeepFromBank}
               onChange={(v) => updateBanking({ payUpkeepFromBank: v })}
-              label="Pay weekly upkeep from bank"
+              label="Pay weekly expenses from bank"
             />
           </div>
         </Card>
