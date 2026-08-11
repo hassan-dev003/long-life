@@ -137,6 +137,28 @@ describe('business lifecycle', () => {
     expect(halfShare).toBeLessThan(noShare); // team's slice comes out of your take
   });
 
+  it('a mature, fully-staffed business at market rate turns a profit', () => {
+    // Hiring must be a net-positive lever, not a trap: staff added at market wage
+    // should earn more than they cost once the business is mature.
+    for (const id of ['lemonade-stand', 'vending', 'cafe', 'consult']) {
+      const def = BUSINESS_BY_ID[id]!;
+      const mature: BusinessInstance = {
+        id: 'x',
+        defId: id,
+        field: def.field,
+        tier: def.tier,
+        growth: 95,
+        morale: 90,
+        staff: def.staffCap, // fully staffed
+        branches: 0,
+        wagePerStaff: def.marketWage, // paying the market rate
+        profitSharePct: 0,
+        fieldStatValue: 85,
+      };
+      expect(weeklyNet(mature, def), `${id} should profit when mature + fully staffed`).toBeGreaterThan(0);
+    }
+  });
+
   it('valuation rises as the business matures', () => {
     const fresh = cafeInstance({ growth: 5, morale: 50 });
     const mature = cafeInstance({ growth: 95, morale: 90 });
